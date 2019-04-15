@@ -1,0 +1,24 @@
+{
+  "name": "maxwell-client-js",
+  "version": "1.0.0",
+  "description": "Maxwell client for js.",
+  "main": "index.js",
+  "repository": "https://github.com/maxwell-dev/maxwell-client-js.git",
+  "author": "Chaoqian Xu <chaoranxu@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "npx webpack-dev-server --open 'Google Chrome' --config config/webpack.config.js",
+    "clean": "bin/clean.sh"
+  },
+  "dependencies": {
+    "maxwell-protocol": "https://github.com/maxwell-dev/maxwell-protocol-js.git"
+  },
+  "devDependencies": {
+    "html-webpack-plugin": "^3.2.0",
+    "msgpack-lite": "^0.1.26",
+    "webpack": "^4.8.3",
+    "webpack-cli": "^3.1.1",
+    "webpack-dev-server": "^3.1.4"
+  },
+  "peerDependencies": {}
+}
