@@ -44,7 +44,7 @@ class Client {
       this._options.heartbeatInterval = 10000;
     }
     if (!this._options.defaultRoundTimeout) {
-      this._options.defaultRoundTimeout = 15000;
+      this._options.defaultRoundTimeout = 5000;
     }
     if (!this._options.defaultOffset) {
       this._options.defaultOffset = -600;
