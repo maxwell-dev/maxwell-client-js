@@ -117,11 +117,12 @@ class Frontend extends Listenable {
 
   _disconnectFromFrontend() {
     this._connection.deleteListener(
-        Event.ON_CONNECTED, this._onConnectToFrontendDone);
+        Event.ON_CONNECTED, this._onConnectToFrontendDone.bind(this));
     this._connection.deleteListener(
-        Event.ON_ERROR, this._onConnectToFrontendFailed);
+        Event.ON_ERROR, this._onConnectToFrontendFailed.bind(this));
     this._connection.deleteListener(
-        Event.ON_DISCONNECTED, this._onDisconnectFromFrontendDone);
+        Event.ON_DISCONNECTED, 
+        this._onDisconnectFromFrontendDone.bind(this));
     this._connectionManager.release(this._connection);
     this._connection = null;
   }
@@ -230,7 +231,7 @@ class Frontend extends Listenable {
 
   async _wait_and_request(msg) {
     await this._condition.wait(this._options.defaultRoundTimeout, msg);
-    return await this._connection.send(msg).wait();
+    return await this._connection.send(msg).wait(); 
   }
 
   _createAuthReq() {

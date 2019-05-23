@@ -45,9 +45,9 @@ class Master {
 
   _disconnectFromMaster() {
     this._connection.deleteListener(
-        Event.ON_CONNECTED, this._onConnectToMasterDone);
+        Event.ON_CONNECTED, this._onConnectToMasterDone.bind(this));
     this._connection.deleteListener(
-        Event.ON_ERROR, this._onConnectToMasterFailed);
+        Event.ON_ERROR, this._onConnectToMasterFailed.bind(this));
     this._connectionManager.release(this._connection);
     this._connection = null;
   }

@@ -9,17 +9,16 @@ class Condition {
   }
 
   wait(timeout = 5000, msg = '') {
+    if (this._cond()) {
+      return Promise.resolve(true);
+    }
     let timer = null;
     let waiterId = this._nextWaiterId();
     return Promise.race([
       new Promise((resolve, reject) => {
-        if (this._cond()) {
-          resolve();
-        } else {
-          this._waiters.set(waiterId, [resolve, reject]);
-        }
+        this._waiters.set(waiterId, [resolve, reject]);
       }),
-      new Promise((resolve, reject) => {
+      new Promise((_, reject) => {
         if (msg === '') {
           msg = `Waiter ${waiterId}`;
         } else {

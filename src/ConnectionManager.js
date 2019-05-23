@@ -25,6 +25,7 @@ class ConnectionManager {
   release(connection) {
     let endpoint = connection.getEndpoint();
     let ref_count = this._ref_counts[endpoint];
+    connection.clear();
     if (typeof ref_count === "undefined" || ref_count - 1 <= 0) {
       connection.close();
       delete this._connections[endpoint];

@@ -55,18 +55,17 @@ class Connection extends Listenable {
       timeout = this._options.defaultRoundTimeout;
     }
 
+    let limitedMsg = JSON.stringify(msg).substr(0, 100);
+
     let pp = new PromisePlus((resolve, reject) => {
           this._callbacks[ref] = [resolve, reject];
-        }, [timeout, `Round ${ref}`]
+        }, [timeout, limitedMsg]
     ).catch(reason => {
       delete this._callbacks[ref];
       throw reason;
     });
 
-    console.log(
-        `Sending msg: ${JSON.stringify(msg)}`
-        + `[${msg.__proto__.$type}](Round ${ref})`
-    );
+    console.debug(`Sending msg: [${msg.__proto__.$type}]${limitedMsg}`);
 
     this._send(msg);
 
@@ -112,8 +111,9 @@ class Connection extends Listenable {
         ref = msg.ref;
       }
 
-      console.log(
-          `Received msg: type: [${msg.__proto__.$type}](Round ${ref})`
+      console.debug(
+          `Received msg: [${msg.__proto__.$type}]`
+          + `${JSON.stringify(msg).substr(0, 100)}`
       );
 
       let callbacks = this._callbacks[ref];
@@ -193,7 +193,7 @@ class Connection extends Listenable {
       this._lastSendingTime = this._now();
     } catch (e) {
       console.error(`Failed to send msg: reason: ${e.stack}`);
-      // eat exception, wait for timeout
+      this.notify(Code.FAILED_TO_SEND);
     }
   }
 

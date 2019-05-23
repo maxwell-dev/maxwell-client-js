@@ -37,7 +37,7 @@ class PromisePlus {
     let timer = null;
     this._promise = Promise.race([
       new Promise(executor),
-      new Promise((resolve, reject) => {
+      new Promise((_, reject) => {
         if (typeof Array.isArray(timeout)) {
           timer = setTimeout(
               () => reject(new TimeoutError(timeout[1])),

@@ -1,28 +1,44 @@
 class Listenable {
 
   constructor() {
-    this._listeners = [];
+    this._listeners = new Map();
   }
 
   addListener(event, callback) {
-    let callbacks = this._listeners[event];
+    if (callback.name === "") {
+      throw new Error("Not allowed anonymous function!");
+    }
+    let callbacks = this._listeners.get(event);
     if (typeof callbacks === "undefined") {
       callbacks = [];
-      this._listeners[event] = callbacks;
+      this._listeners.set(event, callbacks);
     }
     callbacks.push(callback)
   }
 
   deleteListener(event, callback) {
-    let callbacks = this._listeners[event];
+    let callbacks = this._listeners.get(event);
     if (typeof callbacks === "undefined") {
       return;
     }
-    callbacks.splice(callbacks.indexOf(callback), 1)
+    let index = callbacks.findIndex((callback0) => {
+      return callback.name === callback0.name
+    });
+    if (index === -1) {
+      return;
+    }
+    callbacks.splice(index, 1);
+    if (callbacks.length <= 0) {
+      this._listeners.delete(event);
+    }
+  }
+
+  clear() {
+    this._listeners.clear();
   }
 
   notify(event, result) {
-    let callbacks = this._listeners[event];
+    let callbacks = this._listeners.get(event);
     if (typeof callbacks === "undefined") {
       return;
     }
