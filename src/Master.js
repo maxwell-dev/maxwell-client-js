@@ -44,6 +44,9 @@ class Master {
   }
 
   _disconnectFromMaster() {
+    if (!this._connection) {
+      return;
+    }
     this._connection.deleteListener(
         Event.ON_CONNECTED, this._onConnectToMasterDone.bind(this));
     this._connection.deleteListener(

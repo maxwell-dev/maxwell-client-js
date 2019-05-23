@@ -116,6 +116,9 @@ class Frontend extends Listenable {
   }
 
   _disconnectFromFrontend() {
+    if (!this._connection) {
+      return;
+    }
     this._connection.deleteListener(
         Event.ON_CONNECTED, this._onConnectToFrontendDone.bind(this));
     this._connection.deleteListener(

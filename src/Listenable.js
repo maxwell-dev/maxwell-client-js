@@ -6,14 +6,19 @@ class Listenable {
 
   addListener(event, callback) {
     if (callback.name === "") {
-      throw new Error("Not allowed anonymous function!");
+      throw new Error("Not support anonymous function!");
     }
     let callbacks = this._listeners.get(event);
     if (typeof callbacks === "undefined") {
       callbacks = [];
       this._listeners.set(event, callbacks);
     }
-    callbacks.push(callback)
+    let index = callbacks.findIndex((callback0) => {
+      return callback.name === callback0.name
+    });
+    if (index === -1) {
+      callbacks.push(callback);
+    }
   }
 
   deleteListener(event, callback) {
@@ -42,7 +47,8 @@ class Listenable {
     if (typeof callbacks === "undefined") {
       return;
     }
-    callbacks.forEach(callback => {
+    let callback2 = [...callbacks];
+    callback2.forEach(callback => {
       try {
         if (typeof result !== "undefined") {
           callback(result)
