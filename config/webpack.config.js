@@ -6,8 +6,8 @@ module.exports = {
   entry: {
     lib: './index.js',
     // connection: './test/connection.js',
-   // subscriber: './test/subscriber.js',
-    doer: './test/doer.js',
+   subscriber: './test/subscriber.js',
+    // doer: './test/doer.js',
   },
   output: {
     filename: '[name].bundle.js',

@@ -7,7 +7,7 @@
   "author": "Chaoqian Xu <chaoranxu@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "start": "npx webpack-dev-server --open 'Google Chrome' --config config/webpack.config.js",
+    "start": "npx webpack-dev-server --config config/webpack.config.js",
     "clean": "bin/clean.sh"
   },
   "dependencies": {

@@ -3,8 +3,8 @@ const Client = require("../src/Client.js");
 
 let client = new Client(["localhost:8081", "39.106.163.224:8081"]);
 let subscriber = client.getSubscriber();
-
-let topic = "huobi.btc.usdt.1min";
+console.error(client);
+let topic = "/v2/market/summary/market_change?huobi.btc.usdt";
 subscriber.subscribe(topic, 0, (_) => {
   let msgs = [];
   do {
