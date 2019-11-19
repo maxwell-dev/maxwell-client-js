@@ -218,8 +218,8 @@ class Connection extends Listenable {
   }
 
   _hasSentHeartbeat() {
-    return this._options.heartbeatInterval
-        > this._now() - this._lastSendingTime
+    return this._now() - this._lastSendingTime 
+      < this._options.heartbeatInterval
   }
 
   _createPingReq() {
@@ -238,7 +238,11 @@ class Connection extends Listenable {
   }
 
   _buildUrl() {
-    return `ws://${this._endpoint}`;
+    if (this._options.tlsEnabled) {
+      return `wss://${this._endpoint}`;
+    } else {
+      return `ws://${this._endpoint}`;
+    }
   }
 
 }

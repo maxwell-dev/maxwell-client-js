@@ -27,6 +27,7 @@ class Frontend extends Listenable {
     this._pullTasks = new Map();
 
     this._connection = null;
+    this._endpoint_index = -1;
     this._connectToFrontend();
 
     this._condition = new Condition(() => {
@@ -132,7 +133,7 @@ class Frontend extends Listenable {
 
   _onConnectToFrontendDone() {
     this._condition.notify();
-    this._authAndRenewAllTasks();
+    this._renewAllTask();
     this.notify(Event.ON_CONNECTED);
   }
 
@@ -153,6 +154,10 @@ class Frontend extends Listenable {
   }
 
   async _resolveEndpoint() {
+    if (!this._options.masterEnabled) {
+      return Promise.resolve(this._nextEndpoint());
+    }
+    
     let master = new Master(
         this._endpoints, this._connectionManager, this._options
     );
@@ -163,17 +168,12 @@ class Frontend extends Listenable {
     }
   }
 
-  _authAndRenewAllTasks() {
-    this._auth().then(_ => {
-      this._renewAllTask();
-    }, reason => {
-      console.error(`Failed to auth: ${reason.stack}`);
-      setTimeout(() => this._authAndRenewAllTasks(), 1000);
-    });
-  }
-
-  async _auth() {
-    return await this._wait_and_request(this._createAuthReq());
+  _nextEndpoint() {
+    this._endpoint_index += 1;
+    if (this._endpoint_index >= this._endpoints.length) {
+      this._endpoint_index = 0;
+    }
+    return this._endpoints[this._endpoint_index];
   }
 
   _renewAllTask() {
@@ -197,18 +197,20 @@ class Frontend extends Listenable {
       setTimeout(() => this._newPullTask(topic, offset), 100);
       return;
     }
+
     let pullTask = this._connection.send(this._createPullReq(topic, offset), 5000)
         .then(value => {
           queue.put(value.msgs);
           let lastOffset = queue.lastOffset();
           let nextOffset = lastOffset + 1;
           this._subscriptionManager.toDoing(topic, nextOffset);
-          setTimeout(() => this._newPullTask(topic, nextOffset), 1);
+          setTimeout(() => this._newPullTask(topic, nextOffset), 10);
           callback(lastOffset);
         })
         .catch(reason => {
           if (reason instanceof TimeoutError) {
-            setTimeout(() => this._newPullTask(topic, offset), 1);
+            console.debug(`Timeout occured: ${reason}, will pull again...`);
+            setTimeout(() => this._newPullTask(topic, offset), 10);
           } else {
             console.error(`Error occured: ${reason.stack}, will pull again...`);
             setTimeout(() => this._newPullTask(topic, offset), 1000);
@@ -235,10 +237,6 @@ class Frontend extends Listenable {
   async _wait_and_request(msg) {
     await this._condition.wait(this._options.defaultRoundTimeout, msg);
     return await this._connection.send(msg).wait(); 
-  }
-
-  _createAuthReq() {
-    return protocol.auth_req_t.create({token: 'ignore'});
   }
 
   _createPullReq(topic, offset) {

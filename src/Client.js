@@ -37,23 +37,29 @@ class Client {
 
   _initOptions(options) {
     this._options = options || {};
-    if (!this._options.reconnectDelay) {
+    if (typeof this._options.reconnectDelay === "undefined") {
       this._options.reconnectDelay = 3000;
     }
-    if (!this._options.heartbeatInterval) {
+    if (typeof this._options.heartbeatInterval === "undefined") {
       this._options.heartbeatInterval = 10000;
     }
-    if (!this._options.defaultRoundTimeout) {
+    if (typeof this._options.defaultRoundTimeout === "undefined") {
       this._options.defaultRoundTimeout = 15000;
     }
-    if (!this._options.defaultOffset) {
+    if (typeof this._options.defaultOffset === "undefined") {
       this._options.defaultOffset = -600;
     }
-    if (!this._options.getLimit) {
+    if (typeof this._options.getLimit === "undefined") {
       this._options.getLimit = 64;
     }
-    if (!this._options.queueCapacity) {
+    if (typeof this._options.queueCapacity === "undefined") {
       this._options.queueCapacity = 512;
+    }
+    if (typeof this._options.masterEnabled === "undefined") {
+      this._options.masterEnabled = false;
+    }
+    if (typeof this._options.sslEnabled === "undefined") {
+      this._options.sslEnabled = true;
     }
   }
 

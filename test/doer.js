@@ -1,6 +1,6 @@
 const Client = require("../src/Client");
 
-let client = new Client(["localhost:8081"/*, "39.106.163.224:8081"*/]);
+let client = new Client(["localhost:8081"], {sslEnabled: false});
 let doer = client.getDoer();
 
 (function loop() {
