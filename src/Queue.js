@@ -70,30 +70,20 @@ class Queue {
     if (this._array.length <= 0) {
       return -1;
     }
-    let offset = this._array[0].offset;
-    if (typeof offset === "number") {
-      return offset;
-    } else {
-      return offset.toNumber();
-    }
+    return this._ensureBeNumber(this._array[0].offset);
   }
 
   lastOffset() {
     if (this._array.length <= 0) {
       return -1;
     }
-    let offset = this._array[this._array.length - 1].offset;
-    if (typeof offset === "number") {
-      return offset;
-    } else {
-      return offset.toNumber();
-    }
+    return this._ensureBeNumber(this._array[this._array.length - 1].offset);
   }
 
   minIndexFrom(offset) {
     let index = -1;
     for (let i = 0; i < this._array.length; i++) {
-      if (this._array[i].offset >= offset) {
+      if (this._ensureBeNumber(this._array[i].offset) >= offset) {
         index = i;
         break;
       }
@@ -104,12 +94,20 @@ class Queue {
   maxIndexTo(offset) {
     let index = -1;
     for (let i = 0; i < this._array.length; i++) {
-      if (this._array[i].offset > offset) {
+      if (this._ensureBeNumber(this._array[i].offset) > offset) {
         break;
       }
       index = i;
     }
     return index;
+  }
+
+  _ensureBeNumber(offset) {
+    if (typeof offset === "number") {
+      return offset;
+    } else {
+      return offset.toNumber();
+    }
   }
 
 }
