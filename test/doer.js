@@ -1,6 +1,6 @@
 const Client = require("../src/Client");
 
-let client = new Client(["localhost:8081"], {sslEnabled: false});
+let client = new Client(["localhost:10000"], {sslEnabled: false});
 let doer = client.getDoer();
 
 (function loop() {

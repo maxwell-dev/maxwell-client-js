@@ -3,6 +3,7 @@ const Code = require("./Code");
 const Event = require("./Event");
 const Listenable = require("./Listenable");
 const PromisePlus = require("./PromisePlus");
+const WebSocketImpl = global.WebSocket || global.MozWebSocket || require('ws');
 
 
 class Connection extends Listenable {
@@ -146,7 +147,7 @@ class Connection extends Listenable {
   _connect() {
     console.log(`Connecting: endpoint: ${this._endpoint}`);
     this.notify(Event.ON_CONNECTING);
-    let websocket = new WebSocket(this._buildUrl());
+    let websocket = new WebSocketImpl(this._buildUrl());
     websocket.binaryType = 'arraybuffer';
     websocket.onopen = this._onOpen.bind(this);
     websocket.onclose = this._onClose.bind(this);

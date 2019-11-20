@@ -70,14 +70,24 @@ class Queue {
     if (this._array.length <= 0) {
       return -1;
     }
-    return this._array[0].offset;
+    let offset = this._array[0].offset;
+    if (typeof offset === "number") {
+      return offset;
+    } else {
+      return offset.toNumber();
+    }
   }
 
   lastOffset() {
     if (this._array.length <= 0) {
       return -1;
     }
-    return this._array[this._array.length - 1].offset;
+    let offset = this._array[this._array.length - 1].offset;
+    if (typeof offset === "number") {
+      return offset;
+    } else {
+      return offset.toNumber();
+    }
   }
 
   minIndexFrom(offset) {
