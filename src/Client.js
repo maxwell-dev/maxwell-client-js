@@ -56,10 +56,10 @@ class Client {
       this._options.queueCapacity = 512;
     }
     if (typeof this._options.masterEnabled === "undefined") {
-      this._options.masterEnabled = false;
+      this._options.masterEnabled = true;
     }
     if (typeof this._options.sslEnabled === "undefined") {
-      this._options.sslEnabled = true;
+      this._options.sslEnabled = false;
     }
   }
 
