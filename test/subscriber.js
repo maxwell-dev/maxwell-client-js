@@ -1,6 +1,6 @@
 const msgpack = require("msgpack-lite");
 const Client = require("../src/Client.js");
-let client = new Client(["localhost:10000"], {sslEnabled: false});
+let client = new Client(["localhost:8081"], {sslEnabled: false});
 let subscriber = client.getSubscriber();
 let topic = "topic_0";
 subscriber.subscribe(topic, 0, (_) => {
