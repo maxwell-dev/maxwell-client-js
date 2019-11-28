@@ -40,7 +40,9 @@ class PromisePlus {
       new Promise((_, reject) => {
         if (typeof Array.isArray(timeout)) {
           timer = setTimeout(
-              () => reject(new TimeoutError(timeout[1])),
+              () => reject(new TimeoutError(
+                JSON.stringify(timeout[1]).substr(0, 100)
+              )),
               timeout[0]
           );
         } else {

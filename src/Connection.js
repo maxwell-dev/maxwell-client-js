@@ -56,17 +56,17 @@ class Connection extends Listenable {
       timeout = this._options.defaultRoundTimeout;
     }
 
-    let limitedMsg = JSON.stringify(msg).substr(0, 100);
+    // let limitedMsg = JSON.stringify(msg).substr(0, 100);
 
     let pp = new PromisePlus((resolve, reject) => {
           this._callbacks[ref] = [resolve, reject];
-        }, [timeout, limitedMsg]
+        }, [timeout, msg]
     ).catch(reason => {
       delete this._callbacks[ref];
       throw reason;
     });
 
-    console.debug(`Sending msg: [${msg.__proto__.$type}]${limitedMsg}`);
+    // console.debug(`Sending msg: [${msg.__proto__.$type}]${limitedMsg}`);
 
     this._send(msg);
 
@@ -102,20 +102,24 @@ class Connection extends Listenable {
       return;
     }
 
-    if (msg.__proto__.$type === protocol.ping_rep_t) {
+    let msgType = msg.__proto__.$type;
+
+    if (msgType === protocol.ping_rep_t) {
       // do nothing
     } else {
       let ref;
-      if (msg.__proto__.$type === protocol.do_rep_t) {
+      if (msgType === protocol.do_rep_t 
+          || msgType === protocol.ok2_rep_t
+          || msgType === protocol.error2_rep_t) {
         ref = msg.traces[0].ref;
       } else {
         ref = msg.ref;
       }
 
-      console.debug(
-          `Received msg: [${msg.__proto__.$type}]`
-          + `${JSON.stringify(msg).substr(0, 100)}`
-      );
+      // console.debug(
+      //     `Received msg: [${msg.__proto__.$type}]`
+      //     + `${JSON.stringify(msg).substr(0, 100)}`
+      // );
 
       let callbacks = this._callbacks[ref];
       if (typeof callbacks === 'undefined') {
@@ -124,7 +128,8 @@ class Connection extends Listenable {
       try {
         let resolve = callbacks[0];
         let reject = callbacks[1];
-        if (msg.__proto__.$type === protocol.error_rep_t) {
+        if (msgType === protocol.error_rep_t 
+            || msgType === protocol.error2_rep_t) {
           reject(new Error(`code: ${msg.code}, desc: ${msg.desc}`))
         } else {
           resolve(msg)
