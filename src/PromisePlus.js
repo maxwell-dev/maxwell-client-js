@@ -40,15 +40,22 @@ class PromisePlus {
       new Promise((_, reject) => {
         if (typeof Array.isArray(timeout)) {
           timer = setTimeout(
-              () => reject(new TimeoutError(
-                JSON.stringify(timeout[1]).substr(0, 100)
-              )),
+              () => {
+                let msg = "";
+                let reason = timeout[1];
+                if (typeof reason.__proto__ !== "undefined"
+                    && typeof reason.__proto__.$type !== "undefined") {
+                  msg += `[${reason.__proto__.$type}]`;
+                }
+                msg += JSON.stringify(reason).substr(0, 100);
+                reject(new TimeoutError(msg));
+              },
               timeout[0]
           );
         } else {
           timer = setTimeout(
-              () => reject(new TimeoutError()),
-              timeout
+            () => reject(new TimeoutError()), 
+            timeout
           );
         }
       }),
