@@ -54,7 +54,7 @@ class PromisePlus {
           );
         } else {
           timer = setTimeout(
-            () => reject(new TimeoutError()), 
+            () => reject(new TimeoutError()),
             timeout
           );
         }
