@@ -3,7 +3,7 @@ const Code = require("./Code");
 const Event = require("./Event");
 const Listenable = require("./Listenable");
 const PromisePlus = require("./PromisePlus");
-const WebSocketImpl = global.WebSocket || global.MozWebSocket || require('ws');
+const WebSocketImpl = WebSocket || require('ws');
 
 
 class Connection extends Listenable {
