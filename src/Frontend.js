@@ -1,15 +1,15 @@
-const protocol = require('maxwell-protocol');
-const Code = require('./Code');
-const Event = require('./Event');
-const Listenable = require('./Listenable');
-const Condition = require('./Condition');
-const SubscriptionManager = require('./SubscriptionManager');
-const QueueManager = require('./QueueManager');
-const TimeoutError = require('./TimeoutError');
-const Master = require('./Master');
+const protocol = require("maxwell-protocol");
+const Action = require("./Action");
+const Code = require("./Code");
+const Event = require("./Event");
+const Listenable = require("./Listenable");
+const Condition = require("./Condition");
+const SubscriptionManager = require("./SubscriptionManager");
+const QueueManager = require("./QueueManager");
+const TimeoutError = require("./TimeoutError");
+const Master = require("./Master");
 
 class Frontend extends Listenable {
-
   //===========================================
   // APIs
   //===========================================
@@ -25,6 +25,9 @@ class Frontend extends Listenable {
     this._queueManager = new QueueManager(this._options.queueCapacity);
     this._callbacks = new Map();
     this._pullTasks = new Map();
+
+    this._watchCallbacks = new Map();
+    this._watchActions = new Set();
 
     this._connection = null;
     this._endpoint_index = -1;
@@ -63,17 +66,17 @@ class Frontend extends Listenable {
   }
 
   get(topic, offset, limit) {
-    if (typeof offset === 'undefined') {
+    if (typeof offset === "undefined") {
       offset = 0;
     }
-    if (typeof limit === 'undefined') {
+    if (typeof limit === "undefined") {
       limit = 8;
     }
     return this._queueManager.get(topic).getFrom(offset, limit);
   }
 
   commit(topic, offset) {
-    if (typeof offset === 'undefined') {
+    if (typeof offset === "undefined") {
       this._queueManager.get(topic).deleteFirst();
     } else {
       this._queueManager.get(topic).deleteTo(offset);
@@ -91,9 +94,25 @@ class Frontend extends Listenable {
 
   async do(action, params = {}) {
     let result = await this._wait_and_request(
-        this._createDoReq(action, params)
+      this._createDoReq(action, params)
     );
     return JSON.parse(result.value);
+  }
+
+  watch(actionType, callback) {
+    this._watchActions.add(actionType);
+    this._watchCallbacks.set(actionType, callback);
+    if (this._isConnectionOpen()) {
+      this._ensureWatched(actionType);
+    }
+  }
+
+  unwatch(actionType) {
+    this._watchActions.delete(actionType);
+    this._watchCallbacks.delete(actionType);
+    if (this._isConnectionOpen()) {
+      this._ensureUnwatched(actionType);
+    }
   }
 
   //===========================================
@@ -101,19 +120,31 @@ class Frontend extends Listenable {
   //===========================================
 
   _connectToFrontend() {
-    this._resolveEndpoint().then(endpoint => {
-      this._connection = this._connectionManager.fetch(endpoint);
-      this._connection.addListener(
-          Event.ON_CONNECTED, this._onConnectToFrontendDone.bind(this));
-      this._connection.addListener(
-          Event.ON_ERROR, this._onConnectToFrontendFailed.bind(this));
-      this._connection.addListener(
+    this._resolveEndpoint().then(
+      endpoint => {
+        this._connection = this._connectionManager.fetch(endpoint);
+        this._connection.addListener(
+          Event.ON_CONNECTED,
+          this._onConnectToFrontendDone.bind(this)
+        );
+        this._connection.addListener(
+          Event.ON_ERROR,
+          this._onConnectToFrontendFailed.bind(this)
+        );
+        this._connection.addListener(
           Event.ON_DISCONNECTED,
-          this._onDisconnectFromFrontendDone.bind(this));
-    }, reason => {
-      console.error(`Failed to resolve endpoint: ${reason.stack}`);
-      setTimeout(() => this._connectToFrontend(), 1000);
-    });
+          this._onDisconnectFromFrontendDone.bind(this)
+        );
+        this._connection.addListener(
+          Event.ON_MESSAGE,
+          this._onAction.bind(this)
+        );
+      },
+      reason => {
+        console.error(`Failed to resolve endpoint: ${reason.stack}`);
+        setTimeout(() => this._connectToFrontend(), 1000);
+      }
+    );
   }
 
   _disconnectFromFrontend() {
@@ -121,12 +152,21 @@ class Frontend extends Listenable {
       return;
     }
     this._connection.deleteListener(
-        Event.ON_CONNECTED, this._onConnectToFrontendDone.bind(this));
+      Event.ON_CONNECTED,
+      this._onConnectToFrontendDone.bind(this)
+    );
     this._connection.deleteListener(
-        Event.ON_ERROR, this._onConnectToFrontendFailed.bind(this));
+      Event.ON_ERROR,
+      this._onConnectToFrontendFailed.bind(this)
+    );
     this._connection.deleteListener(
-        Event.ON_DISCONNECTED, 
-        this._onDisconnectFromFrontendDone.bind(this));
+      Event.ON_DISCONNECTED,
+      this._onDisconnectFromFrontendDone.bind(this)
+    );
+    this._connection.deleteListener(
+      Event.ON_MESSAGE,
+      this._onAction.bind(this)
+    );
     this._connectionManager.release(this._connection);
     this._connection = null;
   }
@@ -134,6 +174,7 @@ class Frontend extends Listenable {
   _onConnectToFrontendDone() {
     this._condition.notify();
     this._renewAllTask();
+    this._rewatch_all();
     this.notify(Event.ON_CONNECTED);
   }
 
@@ -157,9 +198,11 @@ class Frontend extends Listenable {
     if (!this._options.masterEnabled) {
       return Promise.resolve(this._nextEndpoint());
     }
-    
+
     let master = new Master(
-        this._endpoints, this._connectionManager, this._options
+      this._endpoints,
+      this._connectionManager,
+      this._options
     );
     try {
       return await master.resolveFrontend();
@@ -191,37 +234,36 @@ class Frontend extends Listenable {
     let queue = this._queueManager.get(topic);
     let callback = this._callbacks.get(topic);
     if (queue.isFull()) {
-      console.log(
-          `Queue is full(${queue.size()}), waiting for consuming...`
-      );
+      console.log(`Queue is full(${queue.size()}), waiting for consuming...`);
       setTimeout(() => this._newPullTask(topic, offset), 100);
       return;
     }
 
-    let pullTask = this._connection.send(this._createPullReq(topic, offset), 5000)
-        .then(value => {
-          queue.put(value.msgs);
-          let lastOffset = queue.lastOffset();
-          let nextOffset = lastOffset + 1;
-          this._subscriptionManager.toDoing(topic, nextOffset);
-          setTimeout(() => this._newPullTask(topic, nextOffset), 10);
-          callback(lastOffset);
-        })
-        .catch(reason => {
-          if (reason instanceof TimeoutError) {
-            console.debug(`Timeout occured: ${reason}, will pull again...`);
-            setTimeout(() => this._newPullTask(topic, offset), 10);
-          } else {
-            console.error(`Error occured: ${reason.stack}, will pull again...`);
-            setTimeout(() => this._newPullTask(topic, offset), 1000);
-          }
-        });
+    let pullTask = this._connection
+      .request(this._createPullReq(topic, offset), 5000)
+      .then(value => {
+        queue.put(value.msgs);
+        let lastOffset = queue.lastOffset();
+        let nextOffset = lastOffset + 1;
+        this._subscriptionManager.toDoing(topic, nextOffset);
+        setTimeout(() => this._newPullTask(topic, nextOffset), 10);
+        callback(lastOffset);
+      })
+      .catch(reason => {
+        if (reason instanceof TimeoutError) {
+          console.debug(`Timeout occured: ${reason}, will pull again...`);
+          setTimeout(() => this._newPullTask(topic, offset), 10);
+        } else {
+          console.error(`Error occured: ${reason.stack}, will pull again...`);
+          setTimeout(() => this._newPullTask(topic, offset), 1000);
+        }
+      });
     this._pullTasks.set(topic, pullTask);
   }
 
   _deletePullTask(topic) {
     let task = this._pullTasks.get(topic);
-    if (typeof task !== 'undefined') {
+    if (typeof task !== "undefined") {
       task.cancel();
       this._pullTasks.delete(topic);
     }
@@ -234,9 +276,44 @@ class Frontend extends Listenable {
     this._pullTasks.clear();
   }
 
+  _ensureWatched(actionType) {
+    this._wait_and_request(this._createWatchReq(actionType)).catch(reason => {
+      console.error(`Error occured: ${reason.stack}, will watch again...`);
+      setTimeout(() => this._ensureWatched(actionType), 1000);
+    });
+  }
+
+  _ensureUnwatched(actionType) {
+    this._wait_and_request(this._createUnwatchReq(actionType)).catch(reason => {
+      console.error(`Error occured: ${reason.stack}, will unwatch again...`);
+      setTimeout(() => this._ensureUnwatched(actionType), 1000);
+    });
+  }
+
+  _rewatch_all() {
+    for (let actionType of this._watchActions) {
+      this._ensureWatched(actionType);
+    }
+  }
+
+  _onAction(action) {
+    if (action.__proto__.$type !== protocol.do_req_t) {
+      logger.error("Ignored action: %s", action);
+      return;
+    }
+    let callback = this._watchCallbacks.get(action.type);
+    if (callback !== undefined) {
+      try {
+        callback(new Action(action, this._connection));
+      } catch (e) {
+        console.error(`Failed to notify: ${e.stack}`);
+      }
+    }
+  }
+
   async _wait_and_request(msg) {
     await this._condition.wait(this._options.defaultRoundTimeout, msg);
-    return await this._connection.send(msg).wait(); 
+    return await this._connection.request(msg).wait();
   }
 
   _createPullReq(topic, offset) {
@@ -248,17 +325,24 @@ class Frontend extends Listenable {
   }
 
   _createDoReq(action, params = {}) {
-    let do_req = protocol.do_req_t.create({
+    let doReq = protocol.do_req_t.create({
       type: action.type,
       value: JSON.stringify(action.value ? action.value : {}),
       traces: [protocol.trace_t.create()]
     });
     if (params.sourceEnabled) {
-      do_req.sourceEnabled = true;
+      doReq.sourceEnabled = true;
     }
-    return do_req;
+    return doReq;
   }
 
+  _createWatchReq(actionType) {
+    return protocol.watch_req_t.create({ type: actionType });
+  }
+
+  _createUnwatchReq(actionType) {
+    return protocol.unwatch_req_t.create({ type: actionType });
+  }
 }
 
 module.exports = Frontend;

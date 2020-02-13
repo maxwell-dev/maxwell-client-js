@@ -2,9 +2,9 @@ const ConnectionManager = require("./ConnectionManager");
 const Frontend = require("./Frontend");
 const Subscriber = require("./Subscriber");
 const Doer = require("./Doer");
+const Wather = require("./Watcher");
 
 class Client {
-
   constructor(endpoints, options) {
     this._endpoints = endpoints;
     this._initOptions(options);
@@ -13,6 +13,7 @@ class Client {
     this._frontend = null;
     this._subscriber = null;
     this._doer = null;
+    this._watcher = null;
   }
 
   close() {
@@ -33,6 +34,11 @@ class Client {
   getDoer() {
     this._ensureDoerInited();
     return this._doer;
+  }
+
+  getWatcher() {
+    this._ensureWatcherInited();
+    return this._watcher;
   }
 
   _initOptions(options) {
@@ -68,7 +74,9 @@ class Client {
       return;
     }
     this._frontend = new Frontend(
-        this._endpoints, this._connectionManager, this._options
+      this._endpoints,
+      this._connectionManager,
+      this._options
     );
   }
 
@@ -88,6 +96,13 @@ class Client {
     this._doer = new Doer(this._frontend);
   }
 
+  _ensureWatcherInited() {
+    if (this._watcher) {
+      return;
+    }
+    this._ensureFrontendInited();
+    this._watcher = new Wather(this._frontend);
+  }
 }
 
 module.exports = Client;

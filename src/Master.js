@@ -4,7 +4,6 @@ const Event = require("./Event");
 const Condition = require("./Condition");
 
 class Master {
-
   constructor(endpoints, connectionManager, options) {
     this._endpoints = endpoints;
     this._connectionManager = connectionManager;
@@ -15,7 +14,7 @@ class Master {
     this._connectToMaster();
 
     this._condition = new Condition(() => {
-      return this._condition && this._connection.isOpen()
+      return this._condition && this._connection.isOpen();
     });
   }
 
@@ -26,10 +25,10 @@ class Master {
 
   async resolveFrontend() {
     let resolveFrontendRep = await this._wait_and_request(
-        this._buildResolveFrontendReq()
+      this._buildResolveFrontendReq()
     );
     let endpoint = resolveFrontendRep.endpoint;
-    if (typeof endpoint === 'undefined') {
+    if (typeof endpoint === "undefined") {
       throw new Error(`Invalid endpoint: ${endpoint}`);
     }
     return endpoint;
@@ -38,9 +37,13 @@ class Master {
   _connectToMaster() {
     this._connection = this._connectionManager.fetch(this._nextEndpoint());
     this._connection.addListener(
-        Event.ON_CONNECTED, this._onConnectToMasterDone.bind(this));
+      Event.ON_CONNECTED,
+      this._onConnectToMasterDone.bind(this)
+    );
     this._connection.addListener(
-        Event.ON_ERROR, this._onConnectToMasterFailed.bind(this));
+      Event.ON_ERROR,
+      this._onConnectToMasterFailed.bind(this)
+    );
   }
 
   _disconnectFromMaster() {
@@ -48,9 +51,13 @@ class Master {
       return;
     }
     this._connection.deleteListener(
-        Event.ON_CONNECTED, this._onConnectToMasterDone.bind(this));
+      Event.ON_CONNECTED,
+      this._onConnectToMasterDone.bind(this)
+    );
     this._connection.deleteListener(
-        Event.ON_ERROR, this._onConnectToMasterFailed.bind(this));
+      Event.ON_ERROR,
+      this._onConnectToMasterFailed.bind(this)
+    );
     this._connectionManager.release(this._connection);
     this._connection = null;
   }
@@ -76,13 +83,12 @@ class Master {
 
   async _wait_and_request(msg) {
     await this._condition.wait(this._options.defaultRoundTimeout, msg);
-    return await this._connection.send(msg).wait();
+    return await this._connection.request(msg).wait();
   }
 
   _buildResolveFrontendReq() {
     return protocol.resolve_frontend_req_t.create();
   }
-
 }
 
 module.exports = Master;

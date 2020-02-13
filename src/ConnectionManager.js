@@ -16,7 +16,7 @@ class ConnectionManager {
     }
     let ref_count = this._ref_counts[endpoint];
     if (typeof ref_count === "undefined") {
-      ref_count = 0
+      ref_count = 0;
     }
     this._ref_counts[endpoint] = ref_count + 1;
     return connection;

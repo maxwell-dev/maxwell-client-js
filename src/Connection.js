@@ -3,10 +3,10 @@ const Code = require("./Code");
 const Event = require("./Event");
 const Listenable = require("./Listenable");
 const PromisePlus = require("./PromisePlus");
-const WebSocketImpl = WebSocket || require('ws');
+const WebSocketImpl =
+  typeof WebSocket !== "undefined" ? WebSocket : require("ws");
 
 class Connection extends Listenable {
-
   //===========================================
   // APIs
   //===========================================
@@ -34,15 +34,14 @@ class Connection extends Listenable {
   }
 
   isOpen() {
-    return this._websocket !== null
-        && this._websocket.readyState === 1;
+    return this._websocket !== null && this._websocket.readyState === 1;
   }
 
   getEndpoint() {
     return this._endpoint;
   }
 
-  send(msg, timeout) {
+  request(msg, timeout) {
     let ref = this._newRef();
 
     if (msg.__proto__.$type === protocol.do_req_t) {
@@ -57,9 +56,11 @@ class Connection extends Listenable {
 
     // let limitedMsg = JSON.stringify(msg).substr(0, 100);
 
-    let pp = new PromisePlus((resolve, reject) => {
-          this._callbacks[ref] = [resolve, reject];
-        }, [timeout, msg]
+    let pp = new PromisePlus(
+      (resolve, reject) => {
+        this._callbacks[ref] = [resolve, reject];
+      },
+      [timeout, msg]
     ).catch(reason => {
       delete this._callbacks[ref];
       throw reason;
@@ -67,9 +68,28 @@ class Connection extends Listenable {
 
     // console.debug(`Sending msg: [${msg.__proto__.$type}]${limitedMsg}`);
 
-    this._send(msg);
+    this.send(msg);
 
     return pp.then(result => result);
+  }
+
+  send(msg) {
+    let encodedMsg = "";
+    try {
+      encodedMsg = protocol.encode_msg(msg);
+    } catch (e) {
+      console.error(`Failed to encode msg: reason: ${e.stack}`);
+      this.notify(Event.ON_ERROR, Code.FAILED_TO_ENCODE);
+      return;
+    }
+
+    try {
+      this._websocket.send(encodedMsg);
+      this._lastSendingTime = this._now();
+    } catch (e) {
+      console.error(`Failed to send msg: reason: ${e.stack}`);
+      this.notify(Event.ON_ERROR, Code.FAILED_TO_SEND);
+    }
   }
 
   //===========================================
@@ -84,7 +104,7 @@ class Connection extends Listenable {
   _onClose() {
     this._stopSendHeartbeat();
     if (this._shouldRun) {
-      this._reconnect()
+      this._reconnect();
     }
     console.log(`Connection disconnected: endpoint: ${this._endpoint}`);
     this.notify(Event.ON_DISCONNECTED);
@@ -106,32 +126,41 @@ class Connection extends Listenable {
     if (msgType === protocol.ping_rep_t) {
       // do nothing
     } else {
+      if (msgType === protocol.do_req_t) {
+        this.notify(Event.ON_MESSAGE, msg);
+        return;
+      }
+
       let ref;
-      if (msgType === protocol.do_rep_t 
-          || msgType === protocol.ok2_rep_t
-          || msgType === protocol.error2_rep_t) {
+      if (
+        msgType === protocol.do_rep_t ||
+        msgType === protocol.ok2_rep_t ||
+        msgType === protocol.error2_rep_t
+      ) {
         ref = msg.traces[0].ref;
       } else {
         ref = msg.ref;
       }
 
-      // console.debug(
-      //     `Received msg: [${msg.__proto__.$type}]`
-      //     + `${JSON.stringify(msg).substr(0, 100)}`
-      // );
+      console.debug(
+        `Received msg: [${msg.__proto__.$type}]` +
+          `${JSON.stringify(msg).substr(0, 100)}`
+      );
 
       let callbacks = this._callbacks[ref];
-      if (typeof callbacks === 'undefined') {
+      if (typeof callbacks === "undefined") {
         return;
       }
       try {
         let resolve = callbacks[0];
         let reject = callbacks[1];
-        if (msgType === protocol.error_rep_t 
-            || msgType === protocol.error2_rep_t) {
-          reject(new Error(`code: ${msg.code}, desc: ${msg.desc}`))
+        if (
+          msgType === protocol.error_rep_t ||
+          msgType === protocol.error2_rep_t
+        ) {
+          reject(new Error(`code: ${msg.code}, desc: ${msg.desc}`));
         } else {
-          resolve(msg)
+          resolve(msg);
         }
       } finally {
         delete this._callbacks[ref];
@@ -144,7 +173,6 @@ class Connection extends Listenable {
     this.notify(Event.ON_ERROR, Code.FAILED_TO_CONNECT);
   }
 
-
   //===========================================
   // internal functions
   //===========================================
@@ -152,7 +180,7 @@ class Connection extends Listenable {
     console.log(`Connecting: endpoint: ${this._endpoint}`);
     this.notify(Event.ON_CONNECTING);
     let websocket = new WebSocketImpl(this._buildUrl());
-    websocket.binaryType = 'arraybuffer';
+    websocket.binaryType = "arraybuffer";
     websocket.onopen = this._onOpen.bind(this);
     websocket.onclose = this._onClose.bind(this);
     websocket.onmessage = this._onMsg.bind(this);
@@ -171,9 +199,9 @@ class Connection extends Listenable {
 
   _reconnect() {
     this._reconnectTimer = setTimeout(
-        this._connect.bind(this),
-        this._options.reconnectDelay
-    )
+      this._connect.bind(this),
+      this._options.reconnectDelay
+    );
   }
 
   _stopReconnect() {
@@ -183,29 +211,10 @@ class Connection extends Listenable {
     }
   }
 
-  _send(msg) {
-    let encodedMsg = "";
-    try {
-      encodedMsg = protocol.encode_msg(msg);
-    } catch (e) {
-      console.error(`Failed to encode msg: reason: ${e.stack}`);
-      this.notify(Code.FAILED_TO_ENCODE);
-      return;
-    }
-
-    try {
-      this._websocket.send(encodedMsg);
-      this._lastSendingTime = this._now();
-    } catch (e) {
-      console.error(`Failed to send msg: reason: ${e.stack}`);
-      this.notify(Code.FAILED_TO_SEND);
-    }
-  }
-
   _repeatSendHeartbeat() {
     this._heartbeatTimer = setInterval(
-        this._sendHeartbeat.bind(this),
-        this._options.heartbeatInterval
+      this._sendHeartbeat.bind(this),
+      this._options.heartbeatInterval
     );
   }
 
@@ -218,13 +227,14 @@ class Connection extends Listenable {
 
   _sendHeartbeat() {
     if (this.isOpen() && !this._hasSentHeartbeat()) {
-      this._send(this._createPingReq(), 1);
+      this.send(this._createPingReq(), 1);
     }
   }
 
   _hasSentHeartbeat() {
-    return this._now() - this._lastSendingTime 
-      < this._options.heartbeatInterval
+    return (
+      this._now() - this._lastSendingTime < this._options.heartbeatInterval
+    );
   }
 
   _createPingReq() {
@@ -243,13 +253,12 @@ class Connection extends Listenable {
   }
 
   _buildUrl() {
-    if (this._options.tlsEnabled) {
+    if (this._options.sslEnabled) {
       return `wss://${this._endpoint}`;
     } else {
       return `ws://${this._endpoint}`;
     }
   }
-
 }
 
 module.exports = Connection;

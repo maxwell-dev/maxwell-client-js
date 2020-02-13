@@ -1,4 +1,3 @@
-const msgpack = require("msgpack-lite");
 const Client = require("../src/Client.js");
 let client = new Client(["localhost:8081"], {sslEnabled: false});
 let subscriber = client.getSubscriber();
