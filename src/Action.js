@@ -28,7 +28,7 @@ class Action {
 
   failed(code, desc = "") {
     if (code < 1024) {
-      throw Exception(`Code must be less than 1024, but now ${code}.`);
+      throw Exception(`Code must be >=1024, but now ${code}.`);
     }
     this._connection.send(this._buildErrorRep(code, desc));
   }
