@@ -4,7 +4,7 @@ class ConnectionManager {
   constructor(options) {
     this._options = options;
     this._connections = new Map();
-    this._refcounts = new Map();
+    this._refCount = new Map();
   }
 
   fetch(endpoint) {
@@ -13,23 +13,23 @@ class ConnectionManager {
       connection = new Connection(endpoint, this._options);
       this._connections.set(endpoint, connection);
     }
-    let ref_count = this._refcounts.get(endpoint);
-    if (typeof ref_count === "undefined") {
-      ref_count = 0;
+    let refCount = this._refCount.get(endpoint);
+    if (typeof refCount === "undefined") {
+      refCount = 0;
     }
-    this._refcounts.set(endpoint, ref_count + 1);
+    this._refCount.set(endpoint, refCount + 1);
     return connection;
   }
 
   release(connection) {
     let endpoint = connection.getEndpoint();
-    let ref_count = this._refcounts.get(endpoint);
-    if (typeof ref_count === "undefined" || ref_count - 1 <= 0) {
+    let refCount = this._refCount.get(endpoint);
+    if (typeof refCount === "undefined" || refCount - 1 <= 0) {
       connection.close();
       this._connections.delete(endpoint);
-      this._refcounts.delete(endpoint);
+      this._refCount.delete(endpoint);
     } else {
-      this._refcounts.set(endpoint, ref_count - 1);
+      this._refCount.set(endpoint, refCount - 1);
     }
   }
 
@@ -38,7 +38,7 @@ class ConnectionManager {
       connection.close();
     }
     this._connections.clear();
-    this._refcounts.clear();
+    this._refCount.clear();
   }
 }
 
