@@ -1,5 +1,4 @@
 class SubscriptionManager {
-
   constructor() {
     this._pendings = new Map();
     this._doings = new Map();
@@ -12,7 +11,7 @@ class SubscriptionManager {
 
   toDoing(topic, offset) {
     if (typeof offset === "undefined") {
-      offset  = this._pendings.get(topic);
+      offset = this._pendings.get(topic);
     }
     this._doings.set(topic, offset); // will pull from offset
     this._pendings.delete(topic);
@@ -42,10 +41,9 @@ class SubscriptionManager {
     return this._doings.entries();
   }
 
-  hasSubscribed(topic) {
+  has(topic) {
     return this._pendings.has(topic) || this._doings.has(topic);
   }
-
 }
 
 module.exports = SubscriptionManager;

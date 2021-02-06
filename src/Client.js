@@ -52,6 +52,12 @@ class Client {
     if (typeof this._options.defaultRoundTimeout === "undefined") {
       this._options.defaultRoundTimeout = 15000;
     }
+    if (typeof this._options.retryRouteCount === "undefined") {
+      this._options.retryRouteCount = 0;
+    }
+    if (typeof this._options.pullInterval === "undefined") {
+      this._options.pullInterval = 10;
+    }
     if (typeof this._options.defaultOffset === "undefined") {
       this._options.defaultOffset = -600;
     }

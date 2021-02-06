@@ -48,7 +48,7 @@ class Frontend extends Listenable {
   }
 
   subscribe(topic, offset, callback) {
-    if (this._subscriptionManager.hasSubscribed(topic)) {
+    if (this._subscriptionManager.has(topic)) {
       throw new Error(`Already subscribed: topic: ${topic}`);
     }
     this._subscriptionManager.addSubscription(topic, offset);
@@ -72,14 +72,14 @@ class Frontend extends Listenable {
     if (typeof limit === "undefined") {
       limit = 8;
     }
-    return this._queueManager.get(topic).getFrom(offset, limit);
+    return this._queueManager.get_or_set(topic).getFrom(offset, limit);
   }
 
   commit(topic, offset) {
     if (typeof offset === "undefined") {
-      this._queueManager.get(topic).deleteFirst();
+      this._queueManager.get_or_set(topic).deleteFirst();
     } else {
-      this._queueManager.get(topic).deleteTo(offset);
+      this._queueManager.get_or_set(topic).deleteTo(offset);
     }
   }
 
@@ -121,7 +121,7 @@ class Frontend extends Listenable {
 
   _connectToFrontend() {
     this._resolveEndpoint().then(
-      endpoint => {
+      (endpoint) => {
         this._connection = this._connectionManager.fetch(endpoint);
         this._connection.addListener(
           Event.ON_CONNECTED,
@@ -140,7 +140,7 @@ class Frontend extends Listenable {
           this._onAction.bind(this)
         );
       },
-      reason => {
+      (reason) => {
         console.error(`Failed to resolve endpoint: ${reason.stack}`);
         setTimeout(() => this._connectToFrontend(), 1000);
       }
@@ -228,31 +228,40 @@ class Frontend extends Listenable {
 
   _newPullTask(topic, offset) {
     this._deletePullTask(topic);
-    if (!this._subscriptionManager.hasSubscribed(topic)) {
+
+    if (!this._isValidSubscription(topic)) {
+      console.debug(`Already unsubscribed: ${topic}`);
       return;
     }
-    let queue = this._queueManager.get(topic);
-    let callback = this._callbacks.get(topic);
+
+    let queue = this._queueManager.get_or_set(topic);
     if (queue.isFull()) {
-      console.log(`Queue is full(${queue.size()}), waiting for consuming...`);
-      setTimeout(() => this._newPullTask(topic, offset), 100);
+      console.warn(`Queue is full(${queue.size()}), waiting for consuming...`);
+      setTimeout(() => this._newPullTask(topic, offset), 1000);
       return;
     }
 
     let pullTask = this._connection
       .request(this._createPullReq(topic, offset), 5000)
-      .then(value => {
+      .then((value) => {
+        if (!this._isValidSubscription(topic)) {
+          console.debug(`Already unsubscribed: ${topic}`);
+          return;
+        }
         queue.put(value.msgs);
         let lastOffset = queue.lastOffset();
         let nextOffset = lastOffset + 1;
         this._subscriptionManager.toDoing(topic, nextOffset);
-        setTimeout(() => this._newPullTask(topic, nextOffset), 10);
-        callback(lastOffset);
+        setTimeout(
+          () => this._newPullTask(topic, nextOffset),
+          this._options.pullInterval
+        );
+        this._callbacks.get(topic)(lastOffset);
       })
-      .catch(reason => {
+      .catch((reason) => {
         if (reason instanceof TimeoutError) {
           console.debug(`Timeout occured: ${reason}, will pull again...`);
-          setTimeout(() => this._newPullTask(topic, offset), 10);
+          setTimeout(() => this._newPullTask(topic, offset), 1000);
         } else {
           console.error(`Error occured: ${reason.stack}, will pull again...`);
           setTimeout(() => this._newPullTask(topic, offset), 1000);
@@ -276,18 +285,28 @@ class Frontend extends Listenable {
     this._pullTasks.clear();
   }
 
+  _isValidSubscription(topic) {
+    return (
+      this._subscriptionManager.has(topic) &&
+      this._queueManager.has(topic) &&
+      this._callbacks.has(topic)
+    );
+  }
+
   _ensureWatched(actionType) {
-    this._wait_and_request(this._createWatchReq(actionType)).catch(reason => {
+    this._wait_and_request(this._createWatchReq(actionType)).catch((reason) => {
       console.error(`Error occured: ${reason.stack}, will watch again...`);
       setTimeout(() => this._ensureWatched(actionType), 1000);
     });
   }
 
   _ensureUnwatched(actionType) {
-    this._wait_and_request(this._createUnwatchReq(actionType)).catch(reason => {
-      console.error(`Error occured: ${reason.stack}, will unwatch again...`);
-      setTimeout(() => this._ensureUnwatched(actionType), 1000);
-    });
+    this._wait_and_request(this._createUnwatchReq(actionType)).catch(
+      (reason) => {
+        console.error(`Error occured: ${reason.stack}, will unwatch again...`);
+        setTimeout(() => this._ensureUnwatched(actionType), 1000);
+      }
+    );
   }
 
   _rewatch_all() {
@@ -320,7 +339,7 @@ class Frontend extends Listenable {
     return protocol.pull_req_t.create({
       topic: topic,
       offset: offset,
-      limit: this._options.getLimit
+      limit: this._options.getLimit,
     });
   }
 
@@ -328,7 +347,7 @@ class Frontend extends Listenable {
     let doReq = protocol.do_req_t.create({
       type: action.type,
       value: JSON.stringify(action.value ? action.value : {}),
-      traces: [protocol.trace_t.create()]
+      traces: [protocol.trace_t.create()],
     });
     if (params.sourceEnabled) {
       doReq.sourceEnabled = true;

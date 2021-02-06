@@ -7,18 +7,18 @@ module.exports = {
     lib: "./index.js",
     // connection: './test/connection.js',
     // subscriber: './test/subscriber.js',
-    // doer: "./test/doer.js"
-    watcher: "./test/watcher.js"
+    doer: "./test/doer.js",
+    // watcher: "./test/watcher.js"
   },
   output: {
     filename: "[name].bundle.js",
     path: path.resolve(__dirname, "../dist"),
-    publicPath: "/"
+    publicPath: "/",
   },
   plugins: [
     new HtmlWebpackPlugin({
-      title: "Maxwell Client Test"
-    })
+      title: "Maxwell Client Test",
+    }),
   ],
   devtool: "inline-source-map",
   devServer: {
@@ -28,7 +28,7 @@ module.exports = {
     headers: {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Headers":
-        "Origin, X-Requested-With, Content-Type, Accept"
-    }
-  }
+        "Origin, X-Requested-With, Content-Type, Accept",
+    },
+  },
 };

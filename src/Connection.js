@@ -22,7 +22,7 @@ class Connection extends Listenable {
     this._reconnectTimer = null;
     this._lastSendingTime = 0;
     this._lastRef = 0;
-    this._callbacks = [];
+    this._attachments = new Map(); // { N:[resolve, reject, msg, retryRouteCount, timer]...}
     this._websocket = null;
     this._connect();
   }
@@ -31,6 +31,7 @@ class Connection extends Listenable {
     this._shouldRun = false;
     this._stopReconnect();
     this._disconnect();
+    this._attachments.clear();
   }
 
   isOpen() {
@@ -54,23 +55,22 @@ class Connection extends Listenable {
       timeout = this._options.defaultRoundTimeout;
     }
 
-    // let limitedMsg = JSON.stringify(msg).substr(0, 100);
-
     let pp = new PromisePlus(
       (resolve, reject) => {
-        this._callbacks[ref] = [resolve, reject];
+        this._attachments.set(ref, [resolve, reject, msg, 0, null]);
       },
       [timeout, msg]
-    ).catch(reason => {
-      delete this._callbacks[ref];
+    ).catch((reason) => {
+      this._deleteAttachment(ref);
       throw reason;
     });
 
+    // let limitedMsg = JSON.stringify(msg).substr(0, 100);
     // console.debug(`Sending msg: [${msg.__proto__.$type}]${limitedMsg}`);
 
     this.send(msg);
 
-    return pp.then(result => result);
+    return pp.then((result) => result);
   }
 
   send(msg) {
@@ -142,28 +142,42 @@ class Connection extends Listenable {
         ref = msg.ref;
       }
 
-      console.debug(
-        `Received msg: [${msg.__proto__.$type}]` +
-          `${JSON.stringify(msg).substr(0, 100)}`
-      );
+      // console.debug(
+      //   `Received msg: [${msg.__proto__.$type}]` +
+      //     `${JSON.stringify(msg).substr(0, 100)}`
+      // );
 
-      let callbacks = this._callbacks[ref];
-      if (typeof callbacks === "undefined") {
+      let attachment = this._attachments.get(ref);
+      if (typeof attachment === "undefined") {
         return;
       }
-      try {
-        let resolve = callbacks[0];
-        let reject = callbacks[1];
+
+      if (
+        msgType === protocol.error_rep_t ||
+        msgType === protocol.error2_rep_t
+      ) {
         if (
-          msgType === protocol.error_rep_t ||
-          msgType === protocol.error2_rep_t
+          this._options.retryRouteCount > 0 &&
+          (msg.desc.includes("failed_to_find_watcher") ||
+            msg.desc.includes("frontend_not_found")) &&
+          attachment[3] < this._options.retryRouteCount
         ) {
-          reject(new Error(`code: ${msg.code}, desc: ${msg.desc}`));
+          attachment[4] = setTimeout(() => {
+            this.send(attachment[2]);
+          }, 500 * ++attachment[3]);
         } else {
-          resolve(msg);
+          try {
+            attachment[1](new Error(`code: ${msg.code}, desc: ${msg.desc}`));
+          } finally {
+            this._deleteAttachment(ref);
+          }
         }
-      } finally {
-        delete this._callbacks[ref];
+      } else {
+        try {
+          attachment[0](msg);
+        } finally {
+          this._deleteAttachment(ref);
+        }
       }
     }
   }
@@ -242,7 +256,7 @@ class Connection extends Listenable {
   }
 
   _newRef() {
-    if (this._lastRef > 600000) {
+    if (this._lastRef > 100000000) {
       this._lastRef = 1;
     }
     return ++this._lastRef;
@@ -258,6 +272,17 @@ class Connection extends Listenable {
     } else {
       return `ws://${this._endpoint}`;
     }
+  }
+
+  _deleteAttachment(ref) {
+    const attachments = this._attachments.get(ref);
+    if (typeof attachments === "undefined") {
+      return;
+    }
+    if (attachments[4] !== null) {
+      clearTimeout(attachments[4]);
+    }
+    this._attachments.delete(ref);
   }
 }
 
