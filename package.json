@@ -1,6 +1,6 @@
 {
   "name": "maxwell-client-js",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Maxwell client for js.",
   "main": "index.js",
   "repository": "https://github.com/maxwell-dev/maxwell-client-js.git",

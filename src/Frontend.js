@@ -238,6 +238,7 @@ class Frontend extends Listenable {
     if (queue.isFull()) {
       console.warn(`Queue is full(${queue.size()}), waiting for consuming...`);
       setTimeout(() => this._newPullTask(topic, offset), 1000);
+      this._callbacks.get(topic)(offset - 1);
       return;
     }
 
