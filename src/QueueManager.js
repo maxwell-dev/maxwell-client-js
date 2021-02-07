@@ -16,8 +16,11 @@ class QueueManager {
   }
 
   delete(topic) {
-    this._map.get(topic).clear();
-    this._map.delete(topic);
+    let queue = this._map.get(topic);
+    if (queue !== undefined) {
+      queue.clear();
+      this._map.delete(topic);
+    }
   }
 
   clear() {
