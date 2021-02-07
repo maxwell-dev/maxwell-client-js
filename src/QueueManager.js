@@ -16,7 +16,7 @@ class QueueManager {
   }
 
   delete(topic) {
-    this.get(topic).clear();
+    this._map.get(topic).clear();
     this._map.delete(topic);
   }
 
