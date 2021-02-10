@@ -73,6 +73,9 @@ class Client {
     if (typeof this._options.sslEnabled === "undefined") {
       this._options.sslEnabled = false;
     }
+    if (typeof this._options.debugRoundEnabled === "undefined") {
+      this._options.debugRoundEnabled = false;
+    }
   }
 
   _ensureFrontendInited() {

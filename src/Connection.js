@@ -65,15 +65,17 @@ class Connection extends Listenable {
       throw reason;
     });
 
-    // let limitedMsg = JSON.stringify(msg).substr(0, 100);
-    // console.debug(`Sending msg: [${msg.__proto__.$type}]${limitedMsg}`);
-
     this.send(msg);
 
     return pp.then((result) => result);
   }
 
   send(msg) {
+    if (this._options.debugRoundEnabled) {
+      let limitedMsg = JSON.stringify(msg).substr(0, 100);
+      console.debug(`Sending msg: [${msg.__proto__.$type}]${limitedMsg}`);
+    }
+
     let encodedMsg = "";
     try {
       encodedMsg = protocol.encode_msg(msg);
@@ -126,6 +128,13 @@ class Connection extends Listenable {
     if (msgType === protocol.ping_rep_t) {
       // do nothing
     } else {
+      if (this._options.debugRoundEnabled) {
+        console.debug(
+          `Received msg: [${msg.__proto__.$type}]` +
+            `${JSON.stringify(msg).substr(0, 100)}`
+        );
+      }
+
       if (msgType === protocol.do_req_t) {
         this.notify(Event.ON_MESSAGE, msg);
         return;
@@ -141,11 +150,6 @@ class Connection extends Listenable {
       } else {
         ref = msg.ref;
       }
-
-      // console.debug(
-      //   `Received msg: [${msg.__proto__.$type}]` +
-      //     `${JSON.stringify(msg).substr(0, 100)}`
-      // );
 
       let attachment = this._attachments.get(ref);
       if (typeof attachment === "undefined") {
