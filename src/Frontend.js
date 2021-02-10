@@ -263,7 +263,7 @@ class Frontend extends Listenable {
       .catch((reason) => {
         if (reason instanceof TimeoutError) {
           console.debug(`Timeout occured: ${reason}, will pull again...`);
-          setTimeout(() => this._newPullTask(topic, offset), 1000);
+          setTimeout(() => this._newPullTask(topic, offset), 10);
         } else {
           console.error(`Error occured: ${reason.stack}, will pull again...`);
           setTimeout(() => this._newPullTask(topic, offset), 1000);
