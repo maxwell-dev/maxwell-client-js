@@ -52,6 +52,7 @@ class Frontend extends Listenable {
       throw new Error(`Already subscribed: topic: ${topic}`);
     }
     this._subscriptionManager.addSubscription(topic, offset);
+    this._queueManager.get_or_set(topic);
     this._callbacks.set(topic, callback);
     if (this._isConnectionOpen()) {
       this._newPullTask(topic, offset);
