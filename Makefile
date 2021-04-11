@@ -1,4 +1,4 @@
-.PHONY : default install start test clean
+.PHONY : default install build start test clean
 
 NPM=npm
 
@@ -7,11 +7,14 @@ default: start
 install:
 	${NPM} install
 
+build:
+	${NPM} run build
+
 start: install
-	${NPM} start
+	${NPM} run start
 
 test:
-	${NPM} test
+	${NPM} run test
 
 clean:
 	${NPM} run-script clean

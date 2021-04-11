@@ -1,25 +1,54 @@
 {
   "name": "maxwell-client-js",
-  "version": "1.0.8",
-  "description": "Maxwell client for js.",
-  "main": "index.js",
-  "repository": "https://github.com/maxwell-dev/maxwell-client-js.git",
+  "version": "1.1.0",
+  "description": "Maxwell client for js/ts.",
   "author": "Chaoqian Xu <chaoranxu@gmail.com>",
   "license": "MIT",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
-    "start": "npx webpack-dev-server --config config/webpack.config.js",
+    "build": "npx tsc",
+    "pack": "npx webpack --config webpack.config.js --progress",
+    "doer": "npm run pack && node dist/doer.bundle.js",
+    "watcher": "npm run pack && node dist/watcher.bundle.js",
+    "publisher": "npm run pack && node dist/publisher.bundle.js",
+    "subscriber": "npm run pack && node dist/subscriber.bundle.js",
+    "test": "npx jest --coverage",
+    "format": "npx prettier --write \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\" --ignore-path *.d.ts",
+    "lint": "npx eslint ./src --ext .js,.jsx,.ts,.tsx --ignore-pattern *.d.ts",
     "clean": "bin/clean.sh"
   },
+  "files": [
+    "lib",
+    "LICENSE"
+  ],
+  "repository": "https://github.com/maxwell-dev/maxwell-client-js.git",
   "dependencies": {
-    "ws": "^7.2.0",
-    "maxwell-protocol": "https://github.com/maxwell-dev/maxwell-protocol-js.git"
+    "ws": "^7.4.4",
+    "maxwell-protocol": "https://github.com/maxwell-dev/maxwell-protocol-js.git#v1.0.7"
   },
   "devDependencies": {
-    "html-webpack-plugin": "^3.2.0",
-    "msgpack-lite": "^0.1.26",
-    "webpack": "^4.8.3",
-    "webpack-cli": "^3.1.1",
-    "webpack-dev-server": "^3.1.4"
+    "@babel/cli": "^7.13.14",
+    "@babel/core": "^7.13.15",
+    "@babel/preset-env": "^7.13.15",
+    "@babel/preset-typescript": "^7.13.0",
+    "@msgpack/msgpack": "^2.5.1",
+    "@typescript-eslint/eslint-plugin": "^4.21.0",
+    "@typescript-eslint/parser": "^4.21.0",
+    "babel-jest": "^26.6.3",
+    "bufferutil": "^4.0.3",
+    "canvas": "^2.7.0",
+    "eslint": "^7.23.0",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-plugin-jest": "^24.3.4",
+    "jest": "^26.6.3",
+    "prettier": "^2.2.1",
+    "ts-loader": "^8.1.0",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.2.4",
+    "utf-8-validate": "^5.0.4",
+    "webpack": "^5.31.0",
+    "webpack-cli": "^4.6.0"
   },
   "peerDependencies": {}
 }
