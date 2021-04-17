@@ -1,7 +1,7 @@
 {
   "name": "maxwell-client-js",
-  "version": "1.1.1",
-  "description": "Maxwell client for js/ts.",
+  "version": "1.1.2",
+  "description": "Maxwell client implementation for js/ts.",
   "author": "Chaoqian Xu <chaoranxu@gmail.com>",
   "license": "MIT",
   "main": "lib/index.js",
@@ -25,7 +25,7 @@
   "repository": "https://github.com/maxwell-dev/maxwell-client-js.git",
   "dependencies": {
     "ws": "^7.4.4",
-    "maxwell-protocol": "https://github.com/maxwell-dev/maxwell-protocol-js.git#v1.0.7"
+    "maxwell-protocol": "https://github.com/maxwell-dev/maxwell-protocol-js.git#v1.0.8"
   },
   "devDependencies": {
     "@babel/cli": "^7.13.14",
