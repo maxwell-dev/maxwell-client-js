@@ -12,9 +12,6 @@ module.exports = {
     "plugin:@typescript-eslint/recommended",
     "prettier",
   ],
-  ignorePatterns: ["webpack.config.js"],
-  rules: {
-    // "@typescript-eslint/no-explicit-any": "off",
-    // "@typescript-eslint/explicit-module-boundary-types": "off",
-  },
+  ignorePatterns: ["lib", "webpack.config.js"],
+  rules: {},
 };
