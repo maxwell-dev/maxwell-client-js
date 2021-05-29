@@ -24,7 +24,7 @@
   ],
   "repository": "https://github.com/maxwell-dev/maxwell-client-js.git",
   "dependencies": {
-    "ws": "^7.4.4",
+    "ws": "^7.4.6",
     "maxwell-protocol": "https://github.com/maxwell-dev/maxwell-protocol-js.git#v1.0.8"
   },
   "devDependencies": {
