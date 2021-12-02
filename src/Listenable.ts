@@ -63,7 +63,7 @@ export class Listenable {
         } else {
           callback();
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error(`Failed to notify: reason: ${e.stack}`);
       }
     });

@@ -111,7 +111,7 @@ export class Connection extends Listenable {
     let encodedMsg;
     try {
       encodedMsg = encode_msg(msg);
-    } catch (e) {
+    } catch (e: any) {
       console.error(`Failed to encode msg: reason: ${e.stack}`);
       this.notify(Event.ON_ERROR, Code.FAILED_TO_ENCODE);
       return;
@@ -125,7 +125,7 @@ export class Connection extends Listenable {
     try {
       this._websocket.send(encodedMsg);
       this._sentAt = this._now();
-    } catch (e) {
+    } catch (e: any) {
       console.error(`Failed to send msg: reason: ${e.stack}`);
       this.notify(Event.ON_ERROR, Code.FAILED_TO_SEND);
     }
@@ -156,7 +156,7 @@ export class Connection extends Listenable {
 
     try {
       msg = decode_msg(event.data);
-    } catch (e) {
+    } catch (e: any) {
       console.error(`Failed to decode msg: reason: ${e.stack}`);
       this.notify(Event.ON_ERROR, Code.FAILED_TO_DECODE);
       return;
@@ -225,8 +225,10 @@ export class Connection extends Listenable {
     }
   }
 
-  private _onError() {
-    console.error(`Failed to connect: endpoint: ${this._endpoint}`);
+  private _onError(e: any) {
+    console.error(
+      `Failed to connect: endpoint: ${this._endpoint}, error: ${e.message}`
+    );
     this.notify(Event.ON_ERROR, Code.FAILED_TO_CONNECT);
   }
 

@@ -1,7 +1,7 @@
 import * as maxwell from "../src";
 
-let client = new maxwell.Client(["localhost:8081"], {
-  sslEnabled: false,
+let client = new maxwell.Client(["localhost:1443"], {
+  sslEnabled: true,
   debugRoundEnabled: true,
 });
 let doer = client.getDoer();

@@ -352,7 +352,7 @@ export class Frontend extends Listenable {
     if (callback !== undefined && this._connection !== null) {
       try {
         callback(new ActionHandler(doReq, this._connection));
-      } catch (e) {
+      } catch (e: any) {
         console.error(`Failed to notify: ${e.stack}`);
       }
     }

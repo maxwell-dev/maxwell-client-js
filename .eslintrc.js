@@ -13,5 +13,7 @@ module.exports = {
     "prettier",
   ],
   ignorePatterns: ["lib", "webpack.config.js"],
-  rules: {},
+  rules: {
+    "@typescript-eslint/no-explicit-any": "off",
+  },
 };
