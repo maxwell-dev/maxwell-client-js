@@ -226,6 +226,9 @@ export class Connection extends Listenable {
   }
 
   private _onError(e: any) {
+    if (typeof e.message === "undefined") {
+      return;
+    }
     console.error(
       `Failed to connect: endpoint: ${this._endpoint}, error: ${e.message}`
     );
