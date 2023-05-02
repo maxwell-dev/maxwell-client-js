@@ -1,4 +1,4 @@
-import { Offset } from "./types";
+import { Offset } from "./internal";
 
 export class SubscriptionManager {
   private _pendings: Map<string, Offset>;

@@ -1,5 +1,4 @@
-import Options from "./Options";
-import Connection from "./Connection";
+import { Options, Connection } from "./internal";
 
 export class ConnectionManager {
   private _options: Options;

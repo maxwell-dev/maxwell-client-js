@@ -1,4 +1,4 @@
-import { Msg, Offset } from "./types";
+import { Msg, Offset } from "./internal";
 
 export class Queue {
   private _capacity: number;

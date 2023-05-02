@@ -1,6 +1,6 @@
-import IOptionalOptions from "./IOptionalOptions";
+import { IOptions } from "./internal";
 
-export class Options implements IOptionalOptions {
+export class Options implements IOptions {
   readonly reconnectDelay: number;
   readonly heartbeatInterval: number;
   readonly defaultRoundTimeout: number;
@@ -13,7 +13,7 @@ export class Options implements IOptionalOptions {
   readonly sslEnabled: boolean;
   readonly debugRoundEnabled: boolean;
 
-  constructor(options?: IOptionalOptions) {
+  constructor(options?: IOptions) {
     if (typeof options === "undefined") {
       options = {};
     }

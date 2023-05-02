@@ -1,21 +1,24 @@
 import { msg_types } from "maxwell-protocol";
-import IAction from "./IAction";
-import Code from "./Code";
-import Event from "./Event";
-import Listenable from "./Listenable";
-import PromisePlus from "./PromisePlus";
-import Condition from "./Condition";
-import { OnAction, OnMsg, ProtocolMsg } from "./types";
-import SubscriptionManager from "./SubscriptionManager";
-import QueueManager from "./QueueManager";
-import TimeoutError from "./TimeoutError";
-import Master from "./Master";
-import ConnectionManager from "./ConnectionManager";
-import Options from "./Options";
-import Connection from "./Connection";
-import ActionHandler from "./ActionHandler";
-import { Msg, Offset } from "./types";
-import IHeaders from "./IHeaders";
+import {
+  Offset,
+  Msg,
+  OnMsg,
+  ProtocolMsg,
+  Condition,
+  Code,
+  Event,
+  IAction,
+  IHeaders,
+  Options,
+  TimeoutError,
+  PromisePlus,
+  Listenable,
+  QueueManager,
+  Connection,
+  ConnectionManager,
+  Master,
+  SubscriptionManager,
+} from "./internal";
 
 export class Frontend extends Listenable {
   private _endpoints: string[];
@@ -25,8 +28,6 @@ export class Frontend extends Listenable {
   private _queueManager: QueueManager;
   private _onMsgs: Map<string, OnMsg>;
   private _pullTasks: Map<string, PromisePlus>;
-  private _onActions: Map<string, OnAction>;
-  private _watchActions: Set<string>;
   private _connection: Connection | null;
   private _endpointIndex: number;
   private _condition: Condition;
@@ -50,9 +51,6 @@ export class Frontend extends Listenable {
     this._queueManager = new QueueManager(this._options.queueCapacity || 1024);
     this._onMsgs = new Map();
     this._pullTasks = new Map();
-
-    this._onActions = new Map();
-    this._watchActions = new Set();
 
     this._connection = null;
     this._endpointIndex = -1;
@@ -119,27 +117,11 @@ export class Frontend extends Listenable {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async do(action: IAction, headers: IHeaders = {}): Promise<any> {
+  async request(action: IAction, headers: IHeaders = {}): Promise<any> {
     const result = await this._waitAndRequest(
       this._createDoReq(action, headers)
     );
     return JSON.parse(result.value);
-  }
-
-  watch(actionType: string, onAction: OnAction): void {
-    this._watchActions.add(actionType);
-    this._onActions.set(actionType, onAction);
-    if (this._isConnectionOpen()) {
-      this._ensureWatched(actionType);
-    }
-  }
-
-  unwatch(actionType: string): void {
-    this._watchActions.delete(actionType);
-    this._onActions.delete(actionType);
-    if (this._isConnectionOpen()) {
-      this._ensureUnwatched(actionType);
-    }
   }
 
   //===========================================
@@ -161,10 +143,6 @@ export class Frontend extends Listenable {
         this._connection.addListener(
           Event.ON_DISCONNECTED,
           this._onDisconnectFromFrontendDone.bind(this)
-        );
-        this._connection.addListener(
-          Event.ON_MESSAGE,
-          this._onAction.bind(this)
         );
       },
       (reason) => {
@@ -190,10 +168,6 @@ export class Frontend extends Listenable {
       Event.ON_DISCONNECTED,
       this._onDisconnectFromFrontendDone.bind(this)
     );
-    this._connection.deleteListener(
-      Event.ON_MESSAGE,
-      this._onAction.bind(this)
-    );
     this._connectionManager.release(this._connection);
     this._connection = null;
   }
@@ -201,7 +175,6 @@ export class Frontend extends Listenable {
   private _onConnectToFrontendDone() {
     this._condition.notify();
     this._renewAllTask();
-    this._rewatch_all();
     this.notify(Event.ON_CONNECTED);
   }
 
@@ -292,7 +265,7 @@ export class Frontend extends Listenable {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this._onMsgs.get(topic)!(lastOffset);
       })
-      .catch((reason) => {
+      .catch((reason: any) => {
         if (reason instanceof TimeoutError) {
           console.debug(`Timeout occured: ${reason}, will pull again...`);
           setTimeout(() => this._newPullTask(topic, offset), 10);
@@ -325,37 +298,6 @@ export class Frontend extends Listenable {
       this._queueManager.has(topic) &&
       this._onMsgs.has(topic)
     );
-  }
-
-  private _ensureWatched(actionType: string) {
-    this._waitAndRequest(this._createWatchReq(actionType)).catch((reason) => {
-      console.error(`Error occured: ${reason.stack}, will watch again...`);
-      setTimeout(() => this._ensureWatched(actionType), 1000);
-    });
-  }
-
-  private _ensureUnwatched(actionType: string) {
-    this._waitAndRequest(this._createUnwatchReq(actionType)).catch((reason) => {
-      console.error(`Error occured: ${reason.stack}, will unwatch again...`);
-      setTimeout(() => this._ensureUnwatched(actionType), 1000);
-    });
-  }
-
-  private _rewatch_all() {
-    for (const actionType of this._watchActions) {
-      this._ensureWatched(actionType);
-    }
-  }
-
-  private _onAction(doReq: typeof msg_types.do_req_t.prototype) {
-    const callback = this._onActions.get(doReq.type);
-    if (callback !== undefined && this._connection !== null) {
-      try {
-        callback(new ActionHandler(doReq, this._connection));
-      } catch (e: any) {
-        console.error(`Failed to notify: ${e.stack}`);
-      }
-    }
   }
 
   private async _waitAndRequest(msg: ProtocolMsg) {

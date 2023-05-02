@@ -1,5 +1,4 @@
-import Frontend from "./Frontend";
-import { Msg, Offset, OnMsg } from "./types";
+import { Frontend, Msg, Offset, OnMsg } from "./internal";
 
 export class Subscriber {
   private _frontend: Frontend;

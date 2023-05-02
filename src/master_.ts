@@ -1,11 +1,13 @@
 import { msg_types } from "maxwell-protocol";
-import Code from "./Code";
-import Event from "./Event";
-import Condition from "./Condition";
-import ConnectionManager from "./ConnectionManager";
-import Connection from "./Connection";
-import Options from "./Options";
-import { ProtocolMsg } from "./types";
+import {
+  Code,
+  Event,
+  Condition,
+  ConnectionManager,
+  Connection,
+  Options,
+  ProtocolMsg,
+} from "./internal";
 
 export class Master {
   private _endpoints: string[];

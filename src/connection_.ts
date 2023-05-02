@@ -1,11 +1,14 @@
 import { msg_types, encode_msg, decode_msg } from "maxwell-protocol";
-import Code from "./Code";
-import Event from "./Event";
-import Options from "./Options";
-import Listenable from "./Listenable";
-import PromisePlus from "./PromisePlus";
-import { ProtocolMsg, Timer } from "./types";
-import Condition from "./Condition";
+import {
+  Code,
+  Event,
+  ProtocolMsg,
+  Timer,
+  Condition,
+  Options,
+  Listenable,
+  PromisePlus,
+} from "./internal";
 
 const WebSocketImpl =
   typeof WebSocket !== "undefined" ? WebSocket : require("ws");

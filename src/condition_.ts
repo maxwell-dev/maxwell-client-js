@@ -1,5 +1,4 @@
-import TimeoutError from "./TimeoutError";
-import { Timer } from "./types";
+import { Timer, TimeoutError } from "./internal";
 
 type Cond = () => boolean;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
