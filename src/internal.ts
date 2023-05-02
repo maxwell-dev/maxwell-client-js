@@ -1,24 +1,24 @@
 import { Msg, Offset, OnMsg, ProtocolMsg, Timer } from "./types";
-import { Code } from "./code_";
-import { Event } from "./event_";
-import { Condition } from "./condition_";
-import { IAction } from "./iaction_";
-import { IHeaders } from "./iheaders_";
+import { Code } from "./code";
+import { Event } from "./event";
+import { Condition } from "./condition";
+import { IAction } from "./iaction";
+import { IHeaders } from "./iheaders";
 import { IOptions } from "./ioptions";
-import { Options } from "./options_";
+import { Options } from "./options";
 import { TimeoutError } from "./timeout-error";
 import { PromisePlus } from "./promise-plus";
-import { Listenable } from "./listenable_0";
-import { Queue } from "./queue_";
+import { Listenable } from "./listenable";
+import { Queue } from "./queue";
 import { QueueManager } from "./queue-manager";
-import { Connection } from "./connection_";
+import { Connection } from "./connection";
 import { ConnectionManager } from "./connection-manager";
-import { Frontend } from "./frontend_";
-import { Master } from "./master_";
+import { Frontend } from "./frontend";
+import { Master } from "./master";
 import { Requester } from "./requester";
 import { SubscriptionManager } from "./subscription-manager";
-import { Subscriber } from "./subscriber_";
-import { Client } from "./client_";
+import { Subscriber } from "./subscriber";
+import { Client } from "./client";
 
 export {
   Msg,
