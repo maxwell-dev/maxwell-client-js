@@ -1,27 +1,17 @@
-import IOptionalOptions from "./IOptionalOptions";
-import Subscriber from "./Subscriber";
-import Doer from "./Doer";
-import Wather from "./Watcher";
-import { Publisher } from "./Publisher";
+import { IOptions, Subscriber, Requester } from "./internal";
 export declare class Client {
     private _endpoints;
     private _options;
     private _connectionManager;
     private _frontend;
-    private _doer;
-    private _watcher;
-    private _publisher;
+    private _requester;
     private _subscriber;
-    constructor(endpoints: string[], options?: IOptionalOptions);
+    constructor(endpoints: string[], options?: IOptions);
     close(): void;
-    getDoer(): Doer;
-    getWatcher(): Wather;
-    getPublisher(): Publisher;
+    getRequester(): Requester;
     getSubscriber(): Subscriber;
-    private _ensureFrontendInited;
-    private _ensureDoerInited;
-    private _ensureWatcherInited;
-    private _ensurePublisherInited;
+    private _ensureRequesterInited;
     private _ensureSubscriberInited;
+    private _ensureFrontendInited;
 }
 export default Client;

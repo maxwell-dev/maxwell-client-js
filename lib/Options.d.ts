@@ -1,5 +1,5 @@
-import IOptionalOptions from "./IOptionalOptions";
-export declare class Options implements IOptionalOptions {
+import { IOptions } from "./internal";
+export declare class Options implements IOptions {
     readonly reconnectDelay: number;
     readonly heartbeatInterval: number;
     readonly defaultRoundTimeout: number;
@@ -11,6 +11,6 @@ export declare class Options implements IOptionalOptions {
     readonly masterEnabled: boolean;
     readonly sslEnabled: boolean;
     readonly debugRoundEnabled: boolean;
-    constructor(options?: IOptionalOptions);
+    constructor(options?: IOptions);
 }
 export default Options;

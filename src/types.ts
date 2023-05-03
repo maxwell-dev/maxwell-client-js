@@ -2,7 +2,7 @@ import { msg_types } from "maxwell-protocol";
 
 export type Msg = typeof msg_types.msg_t.prototype;
 
-export type Offset = number;
+export type Offset = bigint;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ProtocolMsg = any;

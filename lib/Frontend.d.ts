@@ -1,10 +1,4 @@
-import IAction from "./IAction";
-import Listenable from "./Listenable";
-import { OnAction, OnMsg } from "./types";
-import ConnectionManager from "./ConnectionManager";
-import Options from "./Options";
-import { Msg, Offset } from "./types";
-import IHeaders from "./IHeaders";
+import { Offset, Msg, OnMsg, IHeaders, Options, Listenable, ConnectionManager } from "./internal";
 export declare class Frontend extends Listenable {
     private _endpoints;
     private _connectionManager;
@@ -13,8 +7,6 @@ export declare class Frontend extends Listenable {
     private _queueManager;
     private _onMsgs;
     private _pullTasks;
-    private _onActions;
-    private _watchActions;
     private _connection;
     private _endpointIndex;
     private _condition;
@@ -25,30 +17,22 @@ export declare class Frontend extends Listenable {
     get(topic: string, offset: Offset, limit: number): Msg[];
     commit(topic: string, offset: Offset): void;
     receive(topic: string, offset: Offset, limit: number): Msg[];
-    do(action: IAction, headers?: IHeaders): Promise<any>;
-    watch(actionType: string, onAction: OnAction): void;
-    unwatch(actionType: string): void;
+    request(path: string, payload?: unknown, headers?: IHeaders): Promise<any>;
     private _connectToFrontend;
     private _disconnectFromFrontend;
     private _onConnectToFrontendDone;
     private _onConnectToFrontendFailed;
     private _onDisconnectFromFrontendDone;
     private _isConnectionOpen;
-    private _resolveEndpoint;
+    private _assignEndpoint;
     private _nextEndpoint;
     private _renewAllTask;
     private _newPullTask;
     private _deletePullTask;
     private _deleteAllPullTasks;
     private _isValidSubscription;
-    private _ensureWatched;
-    private _ensureUnwatched;
-    private _rewatch_all;
-    private _onAction;
     private _waitAndRequest;
     private _createPullReq;
-    private _createDoReq;
-    private _createWatchReq;
-    private _createUnwatchReq;
+    private _createReqReq;
 }
 export default Frontend;

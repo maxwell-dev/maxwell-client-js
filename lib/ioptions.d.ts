@@ -1,4 +1,4 @@
-export interface IOptionalOptions {
+export interface IOptions {
     reconnectDelay?: number;
     heartbeatInterval?: number;
     defaultRoundTimeout?: number;
@@ -11,4 +11,4 @@ export interface IOptionalOptions {
     sslEnabled?: boolean;
     debugRoundEnabled?: boolean;
 }
-export default IOptionalOptions;
+export default IOptions;

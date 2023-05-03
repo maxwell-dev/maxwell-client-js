@@ -1,4 +1,4 @@
-declare type Cond = () => boolean;
+type Cond = () => boolean;
 export declare class Condition {
     private _cond;
     private _waiters;

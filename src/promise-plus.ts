@@ -44,7 +44,11 @@ export class PromisePlus {
     this._canceled = true;
   }
 
-  private _initPromise(executor: Executor, timeout: number, msg?: unknown) {
+  private async _initPromise(
+    executor: Executor,
+    timeout: number,
+    msg?: unknown
+  ): Promise<any> {
     let timer: Timer;
     return Promise.race([
       new Promise(executor),
@@ -55,7 +59,7 @@ export class PromisePlus {
           } else if (typeof msg === "string") {
             reject(new TimeoutError(msg));
           } else {
-            reject(new TimeoutError(JSON.stringify(msg).substr(0, 100)));
+            reject(new TimeoutError(JSON.stringify(msg).substring(0, 100)));
           }
         }, timeout);
       }),

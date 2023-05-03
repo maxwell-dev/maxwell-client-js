@@ -1,13 +1,13 @@
 import * as maxwell from "../src";
 
-let client = new maxwell.Client(["localhost:1443"], {
-  sslEnabled: true,
+let client = new maxwell.Client(["localhost:8081"], {
+  sslEnabled: false,
   debugRoundEnabled: true,
 });
-let doer = client.getDoer();
+let requester = client.getRequester();
 
 (function loop() {
-  let p = doer.do({ type: "get_candles", value: {} }, { sourceEnabled: true });
+  let p = requester.request("/hello", {}, { sourceEnabled: true });
 
   p.then((result) => {
     console.log(`Received result: ${result}`);

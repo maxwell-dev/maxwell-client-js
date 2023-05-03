@@ -2,16 +2,13 @@
 
 NPM=npm
 
-default: start
+default: build
 
 install:
 	${NPM} install
 
 build:
 	${NPM} run build
-
-start: install
-	${NPM} run start
 
 test:
 	${NPM} run test

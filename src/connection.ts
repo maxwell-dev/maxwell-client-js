@@ -13,7 +13,7 @@ import {
 const WebSocketImpl =
   typeof WebSocket !== "undefined" ? WebSocket : require("ws");
 
-// [resolve, reject, msg, retryRouteCount, timer]
+// [resolve, reject, msg, retryRouteCount, timer|null]
 type Attachment = [
   (value: ProtocolMsg) => void,
   (reason?: Error) => void,
@@ -79,11 +79,7 @@ export class Connection extends Listenable {
   request(msg: ProtocolMsg, timeout?: number): PromisePlus {
     const ref = this._newRef();
 
-    if (msg.constructor === msg_types.do_req_t) {
-      msg.traces[0].ref = ref;
-    } else {
-      msg.ref = ref;
-    }
+    msg.ref = ref;
 
     if (typeof timeout === "undefined") {
       timeout = this._options.defaultRoundTimeout;
@@ -100,14 +96,19 @@ export class Connection extends Listenable {
       throw reason;
     });
 
-    this.send(msg);
+    try {
+      this.send(msg);
+    } catch (reason: any) {
+      this._deleteAttachment(ref);
+      throw reason;
+    }
 
     return pp.then((result) => result);
   }
 
   send(msg: ProtocolMsg): void {
     if (this._options.debugRoundEnabled) {
-      const limitedMsg = JSON.stringify(msg).substr(0, 100);
+      const limitedMsg = JSON.stringify(msg).substring(0, 100);
       console.debug(`Sending msg: [${msg.constructor.name}]${limitedMsg}`);
     }
 
@@ -115,22 +116,26 @@ export class Connection extends Listenable {
     try {
       encodedMsg = encode_msg(msg);
     } catch (e: any) {
-      console.error(`Failed to encode msg: reason: ${e.stack}`);
+      const errorMsg = `Failed to encode msg: reason: ${e.stack}`;
+      console.error(errorMsg);
       this.notify(Event.ON_ERROR, Code.FAILED_TO_ENCODE);
-      return;
+      throw new Error(errorMsg);
     }
 
     if (this._websocket == null) {
-      console.error(`Failed to send msg: reason: connection lost`);
+      const errorMsg = `Failed to send msg: reason: connection lost`;
+      console.error(errorMsg);
       this.notify(Event.ON_ERROR, Code.FAILED_TO_SEND);
-      return;
+      throw new Error(errorMsg);
     }
     try {
       this._websocket.send(encodedMsg);
       this._sentAt = this._now();
     } catch (e: any) {
-      console.error(`Failed to send msg: reason: ${e.stack}`);
+      const errorMsg = `Failed to send msg: reason: ${e.stack}`;
+      console.error(errorMsg);
       this.notify(Event.ON_ERROR, Code.FAILED_TO_SEND);
+      throw new Error(errorMsg);
     }
   }
 
@@ -173,25 +178,11 @@ export class Connection extends Listenable {
       if (this._options.debugRoundEnabled) {
         console.debug(
           `Received msg: [${msgType.name}]` +
-            `${JSON.stringify(msg).substr(0, 100)}`
+            `${JSON.stringify(msg).substring(0, 100)}`
         );
       }
 
-      if (msgType === msg_types.do_req_t) {
-        this.notify(Event.ON_MESSAGE, msg);
-        return;
-      }
-
-      let ref;
-      if (
-        msgType === msg_types.do_rep_t ||
-        msgType === msg_types.ok2_rep_t ||
-        msgType === msg_types.error2_rep_t
-      ) {
-        ref = msg.traces[0].ref;
-      } else {
-        ref = msg.ref;
-      }
+      const ref = msg.ref;
 
       const attachment = this._attachments.get(ref);
       if (typeof attachment === "undefined") {
@@ -204,8 +195,7 @@ export class Connection extends Listenable {
       ) {
         if (
           this._options.retryRouteCount > 0 &&
-          (msg.desc.includes("failed_to_find_watcher") ||
-            msg.desc.includes("frontend_not_found")) &&
+          msg.desc.includes("frontend_not_found") &&
           attachment[3] < this._options.retryRouteCount
         ) {
           attachment[4] = setTimeout(() => {

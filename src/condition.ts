@@ -15,7 +15,7 @@ export class Condition {
     this._waiterId = 0;
   }
 
-  wait(timeout = 5000, msg?: string): Promise<boolean> {
+  async wait(timeout = 5000, msg?: string): Promise<boolean> {
     if (this._cond()) {
       return Promise.resolve(true);
     }
@@ -30,7 +30,7 @@ export class Condition {
         if (typeof msg === "undefined") {
           msg = `Timeout waiting: waiter ${waiterId}`;
         } else {
-          msg = JSON.stringify(msg).substr(0, 100);
+          msg = JSON.stringify(msg).substring(0, 100);
         }
         timer = setTimeout(() => reject(new TimeoutError(msg)), timeout);
       }),

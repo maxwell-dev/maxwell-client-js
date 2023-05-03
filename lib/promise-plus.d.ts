@@ -1,6 +1,6 @@
-declare type OnFulfilled = (value: any) => void;
-declare type OnRejected = (reason?: any) => void;
-declare type Executor = (resolve: OnFulfilled, reject: OnRejected) => void;
+type OnFulfilled = (value: any) => void;
+type OnRejected = (reason?: any) => void;
+type Executor = (resolve: OnFulfilled, reject: OnRejected) => void;
 export declare class PromisePlus {
     private _promise;
     private _canceled;

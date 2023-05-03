@@ -1,7 +1,4 @@
-import Options from "./Options";
-import Listenable from "./Listenable";
-import PromisePlus from "./PromisePlus";
-import { ProtocolMsg } from "./types";
+import { ProtocolMsg, Options, Listenable, PromisePlus } from "./internal";
 export declare class Connection extends Listenable {
     private _endpoint;
     private _options;

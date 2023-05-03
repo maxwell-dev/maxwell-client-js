@@ -1,4 +1,4 @@
-import { Offset } from "./types";
+import { Offset } from "./internal";
 export declare class SubscriptionManager {
     private _pendings;
     private _doings;

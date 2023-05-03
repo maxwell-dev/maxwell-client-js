@@ -4,9 +4,7 @@ module.exports = {
   mode: "development",
   entry: {
     index: path.resolve(__dirname, "src", "index.ts"),
-    doer: "./examples/doer.js",
-    watcher: "./examples/watcher.js",
-    publisher: "./examples/publisher.js",
+    requester: "./examples/requester.js",
     subscriber: "./examples/subscriber.js",
   },
   output: {

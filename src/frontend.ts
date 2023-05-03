@@ -7,7 +7,6 @@ import {
   Condition,
   Code,
   Event,
-  IAction,
   IHeaders,
   Options,
   TimeoutError,
@@ -91,7 +90,7 @@ export class Frontend extends Listenable {
 
   get(topic: string, offset: Offset, limit: number): Msg[] {
     if (typeof offset === "undefined") {
-      offset = 0;
+      offset = 0n;
     }
     if (typeof limit === "undefined") {
       limit = 8;
@@ -117,11 +116,15 @@ export class Frontend extends Listenable {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async request(action: IAction, headers: IHeaders = {}): Promise<any> {
+  async request(
+    path: string,
+    payload?: unknown,
+    headers?: IHeaders
+  ): Promise<any> {
     const result = await this._waitAndRequest(
-      this._createDoReq(action, headers)
+      this._createReqReq(path, payload, headers)
     );
-    return JSON.parse(result.value);
+    return JSON.parse(result.payload);
   }
 
   //===========================================
@@ -129,7 +132,7 @@ export class Frontend extends Listenable {
   //===========================================
 
   private _connectToFrontend() {
-    this._resolveEndpoint().then(
+    this._assignEndpoint().then(
       (endpoint) => {
         this._connection = this._connectionManager.fetch(endpoint);
         this._connection.addListener(
@@ -194,7 +197,7 @@ export class Frontend extends Listenable {
     return this._connection !== null && this._connection.isOpen();
   }
 
-  private async _resolveEndpoint() {
+  private async _assignEndpoint() {
     if (!this._options.masterEnabled) {
       return Promise.resolve(this._nextEndpoint());
     }
@@ -205,7 +208,7 @@ export class Frontend extends Listenable {
       this._options
     );
     try {
-      return await master.resolveFrontend();
+      return await master.assignFrontend();
     } finally {
       master.close();
     }
@@ -239,7 +242,7 @@ export class Frontend extends Listenable {
       console.warn(`Queue is full(${queue.size()}), waiting for consuming...`);
       setTimeout(() => this._newPullTask(topic, offset), 1000);
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this._onMsgs.get(topic)!(offset - 1);
+      this._onMsgs.get(topic)!(offset - 1n);
       return;
     }
 
@@ -256,7 +259,7 @@ export class Frontend extends Listenable {
         }
         queue.put(value.msgs as Msg[]);
         const lastOffset = queue.lastOffset();
-        const nextOffset = lastOffset + 1;
+        const nextOffset = lastOffset + 1n;
         this._subscriptionManager.toDoing(topic, nextOffset);
         setTimeout(
           () => this._newPullTask(topic, nextOffset),
@@ -314,24 +317,12 @@ export class Frontend extends Listenable {
     });
   }
 
-  private _createDoReq(action: IAction, headers: IHeaders) {
-    const doReq = new msg_types.do_req_t({
-      type: action.type,
-      value: JSON.stringify(action.value ? action.value : {}),
-      traces: [new msg_types.trace_t()],
+  private _createReqReq(path: string, payload?: unknown, headers?: IHeaders) {
+    return new msg_types.req_req_t({
+      path,
+      payload: JSON.stringify(payload ? payload : {}),
+      header: headers ? headers : {},
     });
-    if (headers.sourceEnabled) {
-      doReq.sourceEnabled = true;
-    }
-    return doReq;
-  }
-
-  private _createWatchReq(actionType: string) {
-    return new msg_types.watch_req_t({ type: actionType });
-  }
-
-  private _createUnwatchReq(actionType: string) {
-    return new msg_types.unwatch_req_t({ type: actionType });
   }
 }
 

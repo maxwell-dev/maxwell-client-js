@@ -1,6 +1,6 @@
-declare type Event = any;
-declare type Result = any;
-declare type Callback = (result?: Result) => void;
+type Event = any;
+type Result = any;
+type Callback = (result?: Result) => void;
 export declare class Listenable {
     private listeners;
     constructor();

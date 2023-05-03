@@ -1,5 +1,5 @@
 import { decode } from "@msgpack/msgpack";
-import Client from "../src/Client";
+import Client from "../src/client";
 let client = new Client(["localhost:8081"], { sslEnabled: false });
 let subscriber = client.getSubscriber();
 let topic = "topic_3";

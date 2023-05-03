@@ -40,22 +40,11 @@ export class Master {
     this._condition.clear();
   }
 
-  async resolveFrontend(): Promise<string> {
-    const resolveFrontendRep = await this._waitAndRequest(
-      this._buildResolveFrontendReq()
+  async assignFrontend(): Promise<string> {
+    const assignFrontendRep = await this._waitAndRequest(
+      this._buildAssignFrontendReq()
     );
-    const endpoint = resolveFrontendRep.endpoint;
-    if (typeof endpoint === "undefined") {
-      throw new Error(`Invalid endpoint: ${endpoint}`);
-    }
-    return endpoint;
-  }
-
-  async resolveBackend(topic: string): Promise<string> {
-    const resolve_backend_rep = await this._waitAndRequest(
-      this._buildResolveBackendReq(topic)
-    );
-    const endpoint = resolve_backend_rep.endpoint;
+    const endpoint = assignFrontendRep.endpoint;
     if (typeof endpoint === "undefined") {
       throw new Error(`Invalid endpoint: ${endpoint}`);
     }
@@ -117,12 +106,8 @@ export class Master {
     return await this._connection.request(msg).wait();
   }
 
-  private _buildResolveFrontendReq() {
-    return new msg_types.resolve_frontend_req_t();
-  }
-
-  private _buildResolveBackendReq(topic: string) {
-    return new msg_types.resolve_backend_req_t({ topic });
+  private _buildAssignFrontendReq() {
+    return new msg_types.assign_frontend_req_t();
   }
 }
 

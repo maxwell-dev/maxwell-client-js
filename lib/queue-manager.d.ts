@@ -1,4 +1,4 @@
-import Queue from "./Queue";
+import { Queue } from "./internal";
 export declare class QueueManager {
     private _queueCapacity;
     private _map;

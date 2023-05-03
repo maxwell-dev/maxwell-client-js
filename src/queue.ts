@@ -46,7 +46,7 @@ export class Queue {
   getFrom(offset: Offset, limit: number): Msg[] {
     const result: Msg[] = [];
     if (offset < 0) {
-      offset = 0;
+      offset = 0n;
     }
     if (limit <= 0 || this._array.length <= 0) {
       return result;
@@ -72,14 +72,14 @@ export class Queue {
 
   firstOffset(): Offset {
     if (this._array.length <= 0) {
-      return -1;
+      return -1n;
     }
     return this._array[0].offset;
   }
 
   lastOffset(): Offset {
     if (this._array.length <= 0) {
-      return -1;
+      return -1n;
     }
     return this._array[this._array.length - 1].offset;
   }
