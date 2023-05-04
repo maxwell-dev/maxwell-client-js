@@ -304,9 +304,9 @@ export class Connection extends Listenable {
 
   private _buildUrl() {
     if (this._options.sslEnabled) {
-      return `wss://${this._endpoint}`;
+      return `wss://${this._endpoint}/ws`;
     } else {
-      return `ws://${this._endpoint}`;
+      return `ws://${this._endpoint}/ws`;
     }
   }
 
