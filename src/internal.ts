@@ -1,4 +1,4 @@
-import { Msg, Offset, OnMsg, ProtocolMsg, Timer } from "./types";
+import { Msg, Offset, asOffset, OnMsg, ProtocolMsg, Timer } from "./types";
 import { Code } from "./code";
 import { Event } from "./event";
 import { Condition } from "./condition";
@@ -22,6 +22,7 @@ import { Client } from "./client";
 export {
   Msg,
   Offset,
+  asOffset,
   OnMsg,
   ProtocolMsg,
   Timer,

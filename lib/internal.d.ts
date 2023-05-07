@@ -1,4 +1,4 @@
-import { Msg, Offset, OnMsg, ProtocolMsg, Timer } from "./types";
+import { Msg, Offset, asOffset, OnMsg, ProtocolMsg, Timer } from "./types";
 import { Code } from "./code";
 import { Event } from "./event";
 import { Condition } from "./condition";
@@ -18,4 +18,4 @@ import { Requester } from "./requester";
 import { SubscriptionManager } from "./subscription-manager";
 import { Subscriber } from "./subscriber";
 import { Client } from "./client";
-export { Msg, Offset, OnMsg, ProtocolMsg, Timer, Code, Event, Condition, IHeaders, IOptions, Options, TimeoutError, PromisePlus, Listenable, Queue, QueueManager, Connection, ConnectionManager, Frontend, Master, Requester, SubscriptionManager, Subscriber, Client, };
+export { Msg, Offset, asOffset, OnMsg, ProtocolMsg, Timer, Code, Event, Condition, IHeaders, IOptions, Options, TimeoutError, PromisePlus, Listenable, Queue, QueueManager, Connection, ConnectionManager, Frontend, Master, Requester, SubscriptionManager, Subscriber, Client, };

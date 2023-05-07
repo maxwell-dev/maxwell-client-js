@@ -2,6 +2,7 @@ import { msg_types } from "maxwell-protocol";
 import {
   Offset,
   Msg,
+  asOffset,
   OnMsg,
   ProtocolMsg,
   Condition,
@@ -90,7 +91,7 @@ export class Frontend extends Listenable {
 
   get(topic: string, offset: Offset, limit: number): Msg[] {
     if (typeof offset === "undefined") {
-      offset = 0n;
+      offset = asOffset(0);
     }
     if (typeof limit === "undefined") {
       limit = 8;
@@ -110,6 +111,8 @@ export class Frontend extends Listenable {
     const msgs = this.get(topic, offset, limit);
     const count = msgs.length;
     if (count > 0) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       this.commit(topic, msgs[count - 1].offset);
     }
     return msgs;
@@ -231,7 +234,7 @@ export class Frontend extends Listenable {
 
   private _newPullTask(topic: string, offset: Offset) {
     this._deletePullTask(topic);
-
+    console.debug("!!!!!!!! 0000000000");
     if (!this._isValidSubscription(topic)) {
       console.debug(`Already unsubscribed: ${topic}`);
       return;
@@ -242,10 +245,10 @@ export class Frontend extends Listenable {
       console.warn(`Queue is full(${queue.size()}), waiting for consuming...`);
       setTimeout(() => this._newPullTask(topic, offset), 1000);
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this._onMsgs.get(topic)!(offset - 1n);
+      this._onMsgs.get(topic)!(offset - asOffset(1));
       return;
     }
-
+    console.debug("!!!!!!!! 111111111");
     if (this._connection === null) {
       console.warn("Connection was lost");
       return;
@@ -253,14 +256,20 @@ export class Frontend extends Listenable {
     const pullTask = this._connection
       .request(this._createPullReq(topic, offset), 5000)
       .then((value: typeof msg_types.pull_rep_t.prototype) => {
+        console.debug("!!!!!!!! 2222222");
         if (!this._isValidSubscription(topic)) {
           console.debug(`Already unsubscribed: ${topic}`);
           return;
         }
+        console.log(value.msgs);
         queue.put(value.msgs as Msg[]);
+        console.debug("!!!!!!!! 333333");
         const lastOffset = queue.lastOffset();
-        const nextOffset = lastOffset + 1n;
+        console.debug("!!!!!!!! 444444");
+        const nextOffset = lastOffset + asOffset(1);
+        console.debug("!!!!!!!! 555555");
         this._subscriptionManager.toDoing(topic, nextOffset);
+        console.debug("!!!!!!!! 666666");
         setTimeout(
           () => this._newPullTask(topic, nextOffset),
           this._options.pullInterval
@@ -312,6 +321,8 @@ export class Frontend extends Listenable {
   private _createPullReq(topic: string, offset: Offset) {
     return new msg_types.pull_req_t({
       topic: topic,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       offset: offset,
       limit: this._options.getLimit,
     });

@@ -1,4 +1,4 @@
-import { Msg, Offset } from "./internal";
+import { Msg, Offset, asOffset } from "./internal";
 
 export class Queue {
   private _capacity: number;
@@ -13,6 +13,8 @@ export class Queue {
     if (msgs.length <= 0) {
       return;
     }
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     const minIndex = this.minIndexFrom(msgs[0].offset);
     if (minIndex > -1) {
       this._array.splice(minIndex, this._array.length);
@@ -46,7 +48,7 @@ export class Queue {
   getFrom(offset: Offset, limit: number): Msg[] {
     const result: Msg[] = [];
     if (offset < 0) {
-      offset = 0n;
+      offset = asOffset(0);
     }
     if (limit <= 0 || this._array.length <= 0) {
       return result;
@@ -72,16 +74,16 @@ export class Queue {
 
   firstOffset(): Offset {
     if (this._array.length <= 0) {
-      return -1n;
+      return asOffset(-1);
     }
-    return this._array[0].offset;
+    return asOffset(this._array[0].offset);
   }
 
   lastOffset(): Offset {
     if (this._array.length <= 0) {
-      return -1n;
+      return asOffset(-1);
     }
-    return this._array[this._array.length - 1].offset;
+    return asOffset(this._array[this._array.length - 1].offset);
   }
 
   minIndexFrom(offset: Offset): number {
