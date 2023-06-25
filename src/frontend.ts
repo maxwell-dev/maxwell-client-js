@@ -200,7 +200,7 @@ export class Frontend extends Listenable {
     return this._connection !== null && this._connection.isOpen();
   }
 
-  private async _assignEndpoint() {
+  private async _assignEndpoint(): Promise<string> {
     if (!this._options.masterEnabled) {
       return Promise.resolve(this._nextEndpoint());
     }
@@ -234,7 +234,6 @@ export class Frontend extends Listenable {
 
   private _newPullTask(topic: string, offset: Offset) {
     this._deletePullTask(topic);
-    console.debug("!!!!!!!! 0000000000");
     if (!this._isValidSubscription(topic)) {
       console.debug(`Already unsubscribed: ${topic}`);
       return;
@@ -248,7 +247,6 @@ export class Frontend extends Listenable {
       this._onMsgs.get(topic)!(offset - asOffset(1));
       return;
     }
-    console.debug("!!!!!!!! 111111111");
     if (this._connection === null) {
       console.warn("Connection was lost");
       return;
@@ -256,20 +254,15 @@ export class Frontend extends Listenable {
     const pullTask = this._connection
       .request(this._createPullReq(topic, offset), 5000)
       .then((value: typeof msg_types.pull_rep_t.prototype) => {
-        console.debug("!!!!!!!! 2222222");
         if (!this._isValidSubscription(topic)) {
           console.debug(`Already unsubscribed: ${topic}`);
           return;
         }
         console.log(value.msgs);
         queue.put(value.msgs as Msg[]);
-        console.debug("!!!!!!!! 333333");
         const lastOffset = queue.lastOffset();
-        console.debug("!!!!!!!! 444444");
         const nextOffset = lastOffset + asOffset(1);
-        console.debug("!!!!!!!! 555555");
         this._subscriptionManager.toDoing(topic, nextOffset);
-        console.debug("!!!!!!!! 666666");
         setTimeout(
           () => this._newPullTask(topic, nextOffset),
           this._options.pullInterval

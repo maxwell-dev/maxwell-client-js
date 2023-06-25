@@ -1,14 +1,13 @@
 import * as maxwell from "../src";
 
-let client = new maxwell.Client(["localhost:8081"], {
+let client =  maxwell.Client.singleton(["localhost:8081"], {
   sslEnabled: false,
   debugRoundEnabled: false,
 });
-let requester = client.getRequester();
 
 async function loop() {
   try {
-    let p = requester.request("/hello",  {}, { sourceEnabled: true });
+    let p = client.request("/hello",  {}, { sourceEnabled: true });
     await p;
     // const result = await p;
     // console.log(`Received result: ${result.length}`);

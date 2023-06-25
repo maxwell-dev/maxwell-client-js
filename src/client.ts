@@ -3,68 +3,69 @@ import {
   Options,
   ConnectionManager,
   Frontend,
-  Subscriber,
-  Requester,
+  IHeaders,
+  Msg,
+  Offset,
+  OnMsg,
 } from "./internal";
 
 export class Client {
   private _endpoints: string[];
   private _options: Options;
   private _connectionManager: ConnectionManager;
-  private _frontend: Frontend | null;
-  private _requester: Requester | null;
-  private _subscriber: Subscriber | null;
+  private _frontend: Frontend;
+  private static _instance: Client;
 
   constructor(endpoints: string[], options?: IOptions) {
     this._endpoints = endpoints;
     this._options = new Options(options);
     this._connectionManager = new ConnectionManager(this._options);
-    this._frontend = null;
-    this._requester = null;
-    this._subscriber = null;
+    this._frontend = new Frontend(
+      this._endpoints,
+      this._connectionManager,
+      this._options
+    );
   }
 
   close(): void {
-    this._frontend?.close();
+    this._frontend.close();
     this._connectionManager.close();
   }
 
-  getRequester(): Requester {
-    this._ensureRequesterInited();
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return this._requester!;
-  }
-
-  getSubscriber(): Subscriber {
-    this._ensureSubscriberInited();
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return this._subscriber!;
-  }
-
-  private _ensureRequesterInited() {
-    if (this._requester === null) {
-      this._ensureFrontendInited();
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this._requester = new Requester(this._frontend!);
+  static singleton(endpoints: string[], options?: IOptions): Client {
+    if (typeof Client._instance === "undefined") {
+      Client._instance = new Client(endpoints, options);
     }
+    return Client._instance;
   }
 
-  private _ensureSubscriberInited() {
-    if (this._subscriber === null) {
-      this._ensureFrontendInited();
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this._subscriber = new Subscriber(this._frontend!);
-    }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async request(
+    path: string,
+    payload?: unknown,
+    headers?: IHeaders
+  ): Promise<any> {
+    return await this._frontend.request(path, payload, headers);
   }
 
-  private _ensureFrontendInited() {
-    if (this._frontend === null) {
-      this._frontend = new Frontend(
-        this._endpoints,
-        this._connectionManager,
-        this._options
-      );
-    }
+  subscribe(topic: string, offset: Offset, onMsg: OnMsg): void {
+    this._frontend.subscribe(topic, offset, onMsg);
+  }
+
+  unsubscribe(topic: string): void {
+    this._frontend.unsubscribe(topic);
+  }
+
+  get(topic: string, offset: Offset, limit: number): Msg[] {
+    return this._frontend.get(topic, offset, limit);
+  }
+
+  commit(topic: string, offset: Offset): void {
+    this._frontend.commit(topic, offset);
+  }
+
+  receive(topic: string, offset: Offset, limit: number): Msg[] {
+    return this._frontend.receive(topic, offset, limit);
   }
 }
 

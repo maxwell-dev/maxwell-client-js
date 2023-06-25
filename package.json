@@ -1,6 +1,6 @@
 {
   "name": "maxwell-client-js",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "Maxwell client implementation for js/ts.",
   "author": "Chaoqian Xu <chaoranxu@gmail.com>",
   "license": "MIT",
@@ -39,6 +39,7 @@
     "eslint": "8.39.0",
     "eslint-config-prettier": "8.8.0",
     "eslint-plugin-jest": "27.2.1",
+    "html-webpack-plugin": "5.5.3",
     "jest": "29.5.0",
     "prettier": "2.8.8",
     "ts-loader": "9.4.2",
@@ -46,7 +47,8 @@
     "typescript": "5.0.4",
     "utf-8-validate": "6.0.3",
     "webpack": "5.81.0",
-    "webpack-cli": "5.0.2"
+    "webpack-cli": "5.0.2",
+    "webpack-dev-server": "4.15.1"
   },
   "peerDependencies": {}
 }

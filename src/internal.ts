@@ -14,9 +14,7 @@ import { Connection } from "./connection";
 import { ConnectionManager } from "./connection-manager";
 import { Frontend } from "./frontend";
 import { Master } from "./master";
-import { Requester } from "./requester";
 import { SubscriptionManager } from "./subscription-manager";
-import { Subscriber } from "./subscriber";
 import { Client } from "./client";
 
 export {
@@ -41,8 +39,6 @@ export {
   ConnectionManager,
   Frontend,
   Master,
-  Requester,
   SubscriptionManager,
-  Subscriber,
   Client,
 };
