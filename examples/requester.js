@@ -7,7 +7,7 @@ let client =  maxwell.Client.singleton(["localhost:8081"], {
 
 async function loop() {
   try {
-    let p = client.request("/hello",  {}, { sourceEnabled: true });
+    let p = client.request("/hello",  {"content": "world"}, { sourceEnabled: true });
     await p;
     // const result = await p;
     // console.log(`Received result: ${result.length}`);

@@ -2,6 +2,8 @@ import Client from "../src/client";
 let client = new Client(["localhost:8081"], { sslEnabled: false });
 let topic = "topic_3";
 
+setTimeout(() => client.unsubscribe(topic), 10000);
+
 client.subscribe(topic, -1, () => {
   let msgs = [];
   do {
