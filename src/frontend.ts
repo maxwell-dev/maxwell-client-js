@@ -258,7 +258,6 @@ export class Frontend extends Listenable {
           console.debug(`Already unsubscribed: ${topic}`);
           return;
         }
-        console.log(value.msgs);
         queue.put(value.msgs as Msg[]);
         const lastOffset = queue.lastOffset();
         const nextOffset = lastOffset + asOffset(1);
