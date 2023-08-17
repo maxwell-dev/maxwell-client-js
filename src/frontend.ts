@@ -28,8 +28,10 @@ export class Frontend extends Listenable {
   private _queueManager: QueueManager;
   private _onMsgs: Map<string, OnMsg>;
   private _pullTasks: Map<string, PromisePlus>;
+  private _master: Master;
   private _connection: Connection | null;
   private _endpointIndex: number;
+  private _failedToConnect: boolean;
   private _condition: Condition;
 
   //===========================================
@@ -52,8 +54,10 @@ export class Frontend extends Listenable {
     this._onMsgs = new Map();
     this._pullTasks = new Map();
 
+    this._master = new Master(this._endpoints, this._options);
     this._connection = null;
     this._endpointIndex = -1;
+    this._failedToConnect = false;
     this._connectToFrontend();
 
     this._condition = new Condition(() => {
@@ -72,7 +76,8 @@ export class Frontend extends Listenable {
 
   subscribe(topic: string, offset: Offset, onMsg: OnMsg): void {
     if (this._subscriptionManager.has(topic)) {
-      throw new Error(`Already subscribed: topic: ${topic}`);
+      console.warn(`Already subscribed: topic: ${topic}`);
+      return;
     }
     this._subscriptionManager.addSubscription(topic, offset);
     this._queueManager.get_or_set(topic);
@@ -179,6 +184,7 @@ export class Frontend extends Listenable {
   }
 
   private _onConnectToFrontendDone() {
+    this._failedToConnect = false;
     this._condition.notify();
     this._renewAllTask();
     this.notify(Event.ON_CONNECTED);
@@ -186,6 +192,7 @@ export class Frontend extends Listenable {
 
   private _onConnectToFrontendFailed(code: Code) {
     if (code === Code.FAILED_TO_CONNECT) {
+      this._failedToConnect = true;
       this._disconnectFromFrontend();
       setTimeout(() => this._connectToFrontend(), 1000);
     }
@@ -201,19 +208,10 @@ export class Frontend extends Listenable {
   }
 
   private async _assignEndpoint(): Promise<string> {
-    if (!this._options.masterEnabled) {
+    if (this._options.masterEnabled) {
+      return await this._master.assignFrontend(this._failedToConnect);
+    } else {
       return Promise.resolve(this._nextEndpoint());
-    }
-
-    const master = new Master(
-      this._endpoints,
-      this._connectionManager,
-      this._options
-    );
-    try {
-      return await master.assignFrontend();
-    } finally {
-      master.close();
     }
   }
 

@@ -7,8 +7,10 @@ export declare class Frontend extends Listenable {
     private _queueManager;
     private _onMsgs;
     private _pullTasks;
+    private _master;
     private _connection;
     private _endpointIndex;
+    private _failedToConnect;
     private _condition;
     constructor(endpoints: string[], connectionManager: ConnectionManager, options: Options);
     close(): void;

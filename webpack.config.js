@@ -5,8 +5,8 @@ module.exports = {
   mode: "development",
   entry: {
     // index: path.resolve(__dirname, "src", "index.ts"),
-    //requester: "./examples/requester.js",
-    subscriber: "./examples/subscriber.js",
+    requester: "./examples/requester.js",
+    //subscriber: "./examples/subscriber.js",
   },
   output: {
     filename: "[name].bundle.js",
@@ -41,5 +41,5 @@ module.exports = {
   resolve: {
     extensions: [".js", ".ts", ".json"],
   },
-  target: "node",
+  target: "web",
 };

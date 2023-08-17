@@ -1,20 +1,14 @@
-import { ConnectionManager, Options } from "./internal";
+import { Options } from "./internal";
 export declare class Master {
     private _endpoints;
-    private _connectionManager;
     private _options;
-    private _connection;
     private _endpoint_index;
-    private _condition;
-    constructor(endpoints: string[], connectionManager: ConnectionManager, options: Options);
-    close(): void;
-    assignFrontend(): Promise<string>;
-    private _connectToMaster;
-    private _disconnectFromMaster;
-    private _onConnectToMasterDone;
-    private _onConnectToMasterFailed;
+    constructor(endpoints: string[], options: Options);
+    assignFrontend(force?: boolean): Promise<string>;
+    getFrontends(force?: boolean): Promise<string>;
+    private _request;
     private _nextEndpoint;
-    private _waitAndRequest;
-    private _buildAssignFrontendReq;
+    private _buildUrl;
+    private static _now;
 }
 export default Master;

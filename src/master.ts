@@ -1,93 +1,79 @@
-import { msg_types } from "maxwell-protocol";
-import {
-  Code,
-  Event,
-  Condition,
-  ConnectionManager,
-  Connection,
-  Options,
-  ProtocolMsg,
-} from "./internal";
+import { fetch } from "cross-fetch";
+import { Options } from "./internal";
+
+const CACHE_KEY = "maxwell-frontend-endpoints";
+const CACHE_TTL = 60 * 60 * 24;
 
 export class Master {
   private _endpoints: string[];
-  private _connectionManager: ConnectionManager;
   private _options: Options;
-  private _connection: Connection | null;
   private _endpoint_index: number;
-  private _condition: Condition;
 
-  constructor(
-    endpoints: string[],
-    connectionManager: ConnectionManager,
-    options: Options
-  ) {
+  constructor(endpoints: string[], options: Options) {
     this._endpoints = endpoints;
-    this._connectionManager = connectionManager;
     this._options = options;
-
-    this._connection = null;
     this._endpoint_index = -1;
-    this._connectToMaster();
-
-    this._condition = new Condition(() => {
-      return this._connection !== null && this._connection.isOpen();
-    });
   }
 
-  close(): void {
-    this._disconnectFromMaster();
-    this._condition.clear();
-  }
-
-  async assignFrontend(): Promise<string> {
-    const assignFrontendRep = await this._waitAndRequest(
-      this._buildAssignFrontendReq()
-    );
-    const endpoint = assignFrontendRep.endpoint;
-    if (typeof endpoint === "undefined") {
-      throw new Error(`Invalid endpoint: ${endpoint}`);
+  async assignFrontend(force = false): Promise<string> {
+    if (typeof localStorage === "undefined" || localStorage === null) {
+      const assignFrontendRep = await this._request("$assign-frontend");
+      if (assignFrontendRep.code !== 0) {
+        throw new Error(`Failed to assign frontend: ${assignFrontendRep}`);
+      }
+      return assignFrontendRep.endpoint;
+    } else {
+      const frontends = await this.getFrontends(force);
+      return frontends[Math.floor(Math.random() * frontends.length)];
     }
-    return endpoint;
   }
 
-  private _connectToMaster(): void {
-    this._connection = this._connectionManager.fetch(this._nextEndpoint());
-    this._connection.addListener(
-      Event.ON_CONNECTED,
-      this._onConnectToMasterDone.bind(this)
-    );
-    this._connection.addListener(
-      Event.ON_ERROR,
-      this._onConnectToMasterFailed.bind(this)
-    );
-  }
-
-  private _disconnectFromMaster() {
-    if (!this._connection) {
-      return;
+  async getFrontends(force = false): Promise<string> {
+    if (!force) {
+      const endpointsInfoString = localStorage.getItem(CACHE_KEY);
+      if (endpointsInfoString !== null) {
+        const endpointsInfo = JSON.parse(endpointsInfoString);
+        if (Master._now() - endpointsInfo.ts >= CACHE_TTL) {
+          localStorage.removeItem(CACHE_KEY);
+        } else {
+          return endpointsInfo.endpoints;
+        }
+      }
     }
-    this._connection.deleteListener(
-      Event.ON_CONNECTED,
-      this._onConnectToMasterDone.bind(this)
-    );
-    this._connection.deleteListener(
-      Event.ON_ERROR,
-      this._onConnectToMasterFailed.bind(this)
-    );
-    this._connectionManager.release(this._connection);
-    this._connection = null;
-  }
-
-  private _onConnectToMasterDone() {
-    this._condition.notify();
-  }
-
-  private _onConnectToMasterFailed(code: Code) {
-    if (code === Code.FAILED_TO_CONNECT) {
-      this._disconnectFromMaster();
-      setTimeout(() => this._connectToMaster(), 1000);
+    const getFrontendsRep = await this._request("$get-frontends");
+    if (getFrontendsRep.code !== 0) {
+      throw new Error(`Failed to get frontends: ${getFrontendsRep}`);
     }
+    localStorage.setItem(
+      CACHE_KEY,
+      JSON.stringify({
+        ts: Master._now(),
+        endpoints: getFrontendsRep.endpoints,
+      })
+    );
+    return getFrontendsRep.endpoints;
+  }
+
+  private async _request(path: string): Promise<any> {
+    let response;
+    let tries = this._endpoints.length;
+    while (tries > 0) {
+      const url = this._buildUrl(this._nextEndpoint(), path);
+      try {
+        console.info(`Requesting master: url: ${url}`);
+        response = await fetch(url);
+        break;
+      } catch (e) {
+        tries--;
+        console.error(`Failed to assign frontend: url: ${url}, error: ${e}`);
+      }
+    }
+    if (tries === 0 || typeof response === "undefined") {
+      throw new Error(`Failed to assign frontend: all endpoints failed`);
+    }
+    const rep = await response.json();
+    console.info(`Successfully requested:`, rep);
+    return rep;
   }
 
   private _nextEndpoint() {
@@ -98,16 +84,16 @@ export class Master {
     return this._endpoints[this._endpoint_index];
   }
 
-  private async _waitAndRequest(msg: ProtocolMsg) {
-    await this._condition.wait(this._options.defaultRoundTimeout, msg);
-    if (this._connection === null) {
-      throw new Error("Connection was lost");
+  private _buildUrl(endpoint: string, path: string) {
+    if (this._options.sslEnabled) {
+      return `https://${endpoint}/${path}`;
+    } else {
+      return `http://${endpoint}/${path}`;
     }
-    return await this._connection.request(msg).wait();
   }
 
-  private _buildAssignFrontendReq() {
-    return new msg_types.assign_frontend_req_t();
+  private static _now() {
+    return Math.floor(new Date().getTime() / 1000);
   }
 }
 
