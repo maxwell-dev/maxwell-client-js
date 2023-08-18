@@ -1,7 +1,7 @@
 import { fetch } from "cross-fetch";
 import { Options } from "./internal";
 
-const CACHE_KEY = "maxwell-frontend-endpoints";
+const CACHE_KEY = "maxwell-client.frontend-endpoints";
 const CACHE_TTL = 60 * 60 * 24;
 
 export class Master {
@@ -61,7 +61,11 @@ export class Master {
       const url = this._buildUrl(this._nextEndpoint(), path);
       try {
         console.info(`Requesting master: url: ${url}`);
-        response = await fetch(url);
+        response = await fetch(url, {
+          method: "GET", // *GET, POST, PUT, DELETE, etc.
+          mode: "cors", // no-cors, *cors, same-origin
+          referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        });
         break;
       } catch (e) {
         tries--;
