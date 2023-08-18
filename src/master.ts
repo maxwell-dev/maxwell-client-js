@@ -1,4 +1,4 @@
-import { fetch } from "cross-fetch";
+import axios from "axios";
 import { Options } from "./internal";
 
 const CACHE_KEY = "maxwell-client.frontend-endpoints";
@@ -55,27 +55,28 @@ export class Master {
   }
 
   private async _request(path: string): Promise<any> {
-    let response;
+    let rep;
     let tries = this._endpoints.length;
     while (tries > 0) {
       const url = this._buildUrl(this._nextEndpoint(), path);
       try {
         console.info(`Requesting master: url: ${url}`);
-        response = await fetch(url, {
-          method: "GET", // *GET, POST, PUT, DELETE, etc.
-          mode: "cors", // no-cors, *cors, same-origin
-          referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-        });
+        const response = await axios.get(url, { timeout: 5000 });
+        if (response.status !== 200) {
+          throw new Error(
+            `Failed to assign frontend: code: ${response.status}, desc: ${response.statusText}`
+          );
+        }
+        rep = response.data;
         break;
       } catch (e) {
         tries--;
         console.error(`Failed to assign frontend: url: ${url}, error: ${e}`);
       }
     }
-    if (tries === 0 || typeof response === "undefined") {
+    if (tries === 0 || typeof rep === "undefined") {
       throw new Error(`Failed to assign frontend: all endpoints failed`);
     }
-    const rep = await response.json();
     console.info(`Successfully requested:`, rep);
     return rep;
   }
