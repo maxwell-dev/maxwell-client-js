@@ -9,12 +9,15 @@ import {
   OnMsg,
 } from "./internal";
 
+const globalWithMaxwellClient = globalThis as unknown as {
+  maxwellClient: Client | undefined;
+};
+
 export class Client {
   private _endpoints: string[];
   private _options: Options;
   private _connectionManager: ConnectionManager;
   private _frontend: Frontend;
-  private static _instance: Client;
 
   constructor(endpoints: string[], options?: IOptions) {
     this._endpoints = endpoints;
@@ -33,10 +36,10 @@ export class Client {
   }
 
   static singleton(endpoints: string[], options?: IOptions): Client {
-    if (typeof Client._instance === "undefined") {
-      Client._instance = new Client(endpoints, options);
+    if (typeof globalWithMaxwellClient.maxwellClient === "undefined") {
+      globalWithMaxwellClient.maxwellClient = new Client(endpoints, options);
     }
-    return Client._instance;
+    return globalWithMaxwellClient.maxwellClient;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

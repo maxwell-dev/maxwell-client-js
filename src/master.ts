@@ -1,4 +1,5 @@
 import axios from "axios";
+import { Localstore } from "localstore";
 import { Options } from "./internal";
 
 const CACHE_KEY = "maxwell-client.frontend-endpoints";
@@ -8,33 +9,27 @@ export class Master {
   private _endpoints: string[];
   private _options: Options;
   private _endpoint_index: number;
+  private _localstore: Localstore;
 
   constructor(endpoints: string[], options: Options) {
     this._endpoints = endpoints;
     this._options = options;
     this._endpoint_index = -1;
+    this._localstore = new Localstore();
   }
 
   async assignFrontend(force = false): Promise<string> {
-    if (typeof localStorage === "undefined" || localStorage === null) {
-      const assignFrontendRep = await this._request("$assign-frontend");
-      if (assignFrontendRep.code !== 0) {
-        throw new Error(`Failed to assign frontend: ${assignFrontendRep}`);
-      }
-      return assignFrontendRep.endpoint;
-    } else {
-      const frontends = await this.getFrontends(force);
-      return frontends[Math.floor(Math.random() * frontends.length)];
-    }
+    const frontends = await this.getFrontends(force);
+    return frontends[Math.floor(Math.random() * frontends.length)];
   }
 
   async getFrontends(force = false): Promise<string> {
     if (!force) {
-      const endpointsInfoString = localStorage.getItem(CACHE_KEY);
-      if (endpointsInfoString !== null) {
+      const endpointsInfoString = await this._localstore.get(CACHE_KEY);
+      if (typeof endpointsInfoString !== "undefined") {
         const endpointsInfo = JSON.parse(endpointsInfoString);
         if (Master._now() - endpointsInfo.ts >= CACHE_TTL) {
-          localStorage.removeItem(CACHE_KEY);
+          await this._localstore.remove(CACHE_KEY);
         } else {
           return endpointsInfo.endpoints;
         }
@@ -44,7 +39,7 @@ export class Master {
     if (getFrontendsRep.code !== 0) {
       throw new Error(`Failed to get frontends: ${getFrontendsRep}`);
     }
-    localStorage.setItem(
+    await this._localstore.set(
       CACHE_KEY,
       JSON.stringify({
         ts: Master._now(),

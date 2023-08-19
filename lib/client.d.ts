@@ -4,7 +4,6 @@ export declare class Client {
     private _options;
     private _connectionManager;
     private _frontend;
-    private static _instance;
     constructor(endpoints: string[], options?: IOptions);
     close(): void;
     static singleton(endpoints: string[], options?: IOptions): Client;

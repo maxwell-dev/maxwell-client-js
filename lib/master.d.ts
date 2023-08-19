@@ -3,6 +3,7 @@ export declare class Master {
     private _endpoints;
     private _options;
     private _endpoint_index;
+    private _localstore;
     constructor(endpoints: string[], options: Options);
     assignFrontend(force?: boolean): Promise<string>;
     getFrontends(force?: boolean): Promise<string>;
