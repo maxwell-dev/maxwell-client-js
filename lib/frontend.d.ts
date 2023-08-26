@@ -26,7 +26,7 @@ export declare class Frontend extends Listenable {
     private _onConnectToFrontendFailed;
     private _onDisconnectFromFrontendDone;
     private _isConnectionOpen;
-    private _assignEndpoint;
+    private _pickEndpoint;
     private _nextEndpoint;
     private _renewAllTask;
     private _newPullTask;

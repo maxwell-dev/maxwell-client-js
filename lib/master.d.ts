@@ -5,8 +5,8 @@ export declare class Master {
     private _endpoint_index;
     private _localstore;
     constructor(endpoints: string[], options: Options);
-    assignFrontend(force?: boolean): Promise<string>;
-    getFrontends(force?: boolean): Promise<string>;
+    pickFrontend(force?: boolean): Promise<string>;
+    pickFrontends(force?: boolean): Promise<string>;
     private _request;
     private _nextEndpoint;
     private _buildUrl;

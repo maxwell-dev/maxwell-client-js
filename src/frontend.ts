@@ -140,7 +140,7 @@ export class Frontend extends Listenable {
   //===========================================
 
   private _connectToFrontend() {
-    this._assignEndpoint().then(
+    this._pickEndpoint().then(
       (endpoint) => {
         this._connection = this._connectionManager.fetch(endpoint);
         this._connection.addListener(
@@ -207,9 +207,9 @@ export class Frontend extends Listenable {
     return this._connection !== null && this._connection.isOpen();
   }
 
-  private async _assignEndpoint(): Promise<string> {
+  private async _pickEndpoint(): Promise<string> {
     if (this._options.masterEnabled) {
-      return await this._master.assignFrontend(this._failedToConnect);
+      return await this._master.pickFrontend(this._failedToConnect);
     } else {
       return Promise.resolve(this._nextEndpoint());
     }

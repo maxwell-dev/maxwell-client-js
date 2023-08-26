@@ -8,9 +8,8 @@ let client =  maxwell.Client.singleton(["localhost:8081"], {
 async function loop() {
   try {
     let p = client.request("/hello",  {"content": "world"}, { sourceEnabled: true });
-    await p;
-    // const result = await p;
-    // console.log(`Received result: ${result.length}`);
+    const result = await p;
+    console.log(`Received result: ${result.length}`);
   } catch (reason) {
     console.error(`Error occured: ${reason.stack}`);
   }

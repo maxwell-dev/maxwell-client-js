@@ -18,12 +18,12 @@ export class Master {
     this._localstore = new Localstore();
   }
 
-  async assignFrontend(force = false): Promise<string> {
-    const frontends = await this.getFrontends(force);
+  async pickFrontend(force = false): Promise<string> {
+    const frontends = await this.pickFrontends(force);
     return frontends[Math.floor(Math.random() * frontends.length)];
   }
 
-  async getFrontends(force = false): Promise<string> {
+  async pickFrontends(force = false): Promise<string> {
     if (!force) {
       const endpointsInfoString = await this._localstore.get(CACHE_KEY);
       if (typeof endpointsInfoString !== "undefined") {
@@ -35,18 +35,18 @@ export class Master {
         }
       }
     }
-    const getFrontendsRep = await this._request("$get-frontends");
-    if (getFrontendsRep.code !== 0) {
-      throw new Error(`Failed to get frontends: ${getFrontendsRep}`);
+    const pickFrontendsRep = await this._request("$pick-frontends");
+    if (pickFrontendsRep.code !== 0) {
+      throw new Error(`Failed to get frontends: ${pickFrontendsRep}`);
     }
     await this._localstore.set(
       CACHE_KEY,
       JSON.stringify({
         ts: Master._now(),
-        endpoints: getFrontendsRep.endpoints,
+        endpoints: pickFrontendsRep.endpoints,
       })
     );
-    return getFrontendsRep.endpoints;
+    return pickFrontendsRep.endpoints;
   }
 
   private async _request(path: string): Promise<any> {
