@@ -163,7 +163,9 @@ export class Connection extends Listenable {
     let msg: ProtocolMsg;
 
     try {
+      console.error("1111111", event.data);
       msg = decode_msg(event.data);
+      console.error("2222222", msg);
     } catch (e: any) {
       console.error(`Failed to decode msg: reason: ${e.stack}`);
       this.notify(Event.ON_ERROR, Code.FAILED_TO_DECODE);
@@ -185,6 +187,7 @@ export class Connection extends Listenable {
       const ref = msg.ref;
 
       const attachment = this._attachments.get(ref);
+      console.error("33333333", attachment);
       if (typeof attachment === "undefined") {
         return;
       }
