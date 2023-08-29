@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Localstore } from "localstore";
+import { Localstore } from "@xuchaoqian/localstore-js";
 import { Options } from "./internal";
 
 const CACHE_KEY = "maxwell-client.frontend-endpoints";
