@@ -37,7 +37,7 @@ export class Master {
     }
     const pickFrontendsRep = await this._request("$pick-frontends");
     if (pickFrontendsRep.code !== 0) {
-      throw new Error(`Failed to get frontends: ${pickFrontendsRep}`);
+      throw new Error(`Failed to pick frontends: ${pickFrontendsRep}`);
     }
     await this._localstore.set(
       CACHE_KEY,
@@ -59,20 +59,20 @@ export class Master {
         const response = await axios.get(url, { timeout: 5000 });
         if (response.status !== 200) {
           throw new Error(
-            `Failed to assign frontend: code: ${response.status}, desc: ${response.statusText}`
+            `Failed to request master: status: ${response.status}, desc: ${response.statusText}`
           );
         }
         rep = response.data;
         break;
       } catch (e) {
         tries--;
-        console.error(`Failed to assign frontend: url: ${url}, error: ${e}`);
+        console.error(`Failed to request master: url: ${url}, error: ${e}`);
       }
     }
     if (tries === 0 || typeof rep === "undefined") {
-      throw new Error(`Failed to assign frontend: all endpoints failed`);
+      throw new Error("Failed to request all endpoints of master cluster.");
     }
-    console.info(`Successfully requested:`, rep);
+    console.info("Successfully to request master: rep", rep);
     return rep;
   }
 
