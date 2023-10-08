@@ -242,7 +242,7 @@ export class Frontend extends Listenable {
       console.warn(`Queue is full(${queue.size()}), waiting for consuming...`);
       setTimeout(() => this._newPullTask(topic, offset), 1000);
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this._onMsgs.get(topic)!(offset - asOffset(1));
+      this._onMsgs.get(topic)!(queue.lastOffset());
       return;
     }
     if (this._connection === null) {
@@ -270,7 +270,7 @@ export class Frontend extends Listenable {
       .catch((reason: any) => {
         if (reason instanceof TimeoutError) {
           console.debug(`Timeout occured: ${reason}, will pull again...`);
-          setTimeout(() => this._newPullTask(topic, offset), 10);
+          setTimeout(() => this._newPullTask(topic, offset), 0);
         } else {
           console.error(`Error occured: ${reason.stack}, will pull again...`);
           setTimeout(() => this._newPullTask(topic, offset), 1000);
