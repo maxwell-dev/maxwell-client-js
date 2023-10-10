@@ -157,7 +157,7 @@ export class Frontend extends Listenable {
         );
       },
       (reason) => {
-        console.error(`Failed to resolve endpoint: ${reason.stack}`);
+        console.error(`Failed to pick endpoint: ${reason.stack}`);
         setTimeout(() => this._connectToFrontend(), 1000);
       }
     );
