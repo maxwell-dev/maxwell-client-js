@@ -69,8 +69,11 @@ export class Master {
         console.error(`Failed to request master: url: ${url}, error: ${e}`);
       }
     }
-    if (tries === 0 || typeof rep === "undefined") {
+    if (tries === 0) {
       throw new Error("Failed to request all endpoints of master cluster.");
+    }
+    if (!rep) {
+      throw new Error(`Got an invalid response: ${rep}`);
     }
     console.info("Successfully to request master: rep", rep);
     return rep;
