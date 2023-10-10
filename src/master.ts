@@ -71,7 +71,7 @@ export class Master {
     }
     if (tries === 0) {
       throw new Error(
-        `Failed to request all endpoints: ${this._endpoints} of master cluster.`
+        `Failed to request all endpoints: [${this._endpoints}] of master cluster.`
       );
     }
     if (!rep) {
