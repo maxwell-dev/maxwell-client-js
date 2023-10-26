@@ -1,7 +1,7 @@
 import Client from "../src/client";
-let client = new Client(["localhost:8081"], { sslEnabled: false, debugRoundEnabled: false });
+const client = new Client(["localhost:8081"], { sslEnabled: false, debugRoundEnabled: false });
 
-let topic = "topic_3";
+const topic = "topic_1";
 client.subscribe(topic, -1, () => {
   let msgs = [];
   do {

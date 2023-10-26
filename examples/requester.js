@@ -9,7 +9,7 @@ async function loop() {
   try {
     let p = client.request("/hello",  {"content": "world"}, { sourceEnabled: true });
     const result = await p;
-    console.log(`Received result: `, result);
+    console.log(`Received result: `, result.length);
   } catch (reason) {
     console.error(`Error occured: ${reason.stack}`);
   }
@@ -43,7 +43,7 @@ async function runOnce() {
   console.time("answer time@run");
   for (let i = 0; i < 100000000; i++) {
     await runOnce();
-    await new Promise(r => setTimeout(r, 2000));
+    await new Promise(r => setTimeout(r, 1));
   }
   console.timeEnd("answer time@run");
 })()

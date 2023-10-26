@@ -4,8 +4,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = {
   mode: "development",
   entry: {
-    // index: path.resolve(__dirname, "src", "index.ts"),
-    // requester: "./examples/requester.js",
+    connection: "./examples/connection.js",
+    requester: "./examples/requester.js",
     subscriber: "./examples/subscriber.js",
   },
   output: {
