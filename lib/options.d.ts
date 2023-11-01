@@ -1,5 +1,6 @@
 import { IOptions } from "./internal";
 export declare class Options implements IOptions {
+    readonly waitOpenTimeout?: number | undefined;
     readonly reconnectDelay: number;
     readonly heartbeatInterval: number;
     readonly defaultRoundTimeout: number;
@@ -8,7 +9,6 @@ export declare class Options implements IOptions {
     readonly defaultOffset: number;
     readonly getLimit: number;
     readonly queueCapacity: number;
-    readonly masterEnabled: boolean;
     readonly sslEnabled: boolean;
     readonly debugRoundEnabled: boolean;
     constructor(options?: IOptions);

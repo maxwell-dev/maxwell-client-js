@@ -43,7 +43,6 @@ async function runOnce() {
   console.time("answer time@run");
   for (let i = 0; i < 100000000; i++) {
     await runOnce();
-    await new Promise(r => setTimeout(r, 1));
   }
   console.timeEnd("answer time@run");
 })()

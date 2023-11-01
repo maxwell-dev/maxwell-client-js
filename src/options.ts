@@ -1,6 +1,7 @@
 import { IOptions } from "./internal";
 
 export class Options implements IOptions {
+  readonly waitOpenTimeout?: number | undefined;
   readonly reconnectDelay: number;
   readonly heartbeatInterval: number;
   readonly defaultRoundTimeout: number;
@@ -9,7 +10,6 @@ export class Options implements IOptions {
   readonly defaultOffset: number;
   readonly getLimit: number;
   readonly queueCapacity: number;
-  readonly masterEnabled: boolean;
   readonly sslEnabled: boolean;
   readonly debugRoundEnabled: boolean;
 
@@ -17,8 +17,13 @@ export class Options implements IOptions {
     if (typeof options === "undefined") {
       options = {};
     }
+    if (typeof options.waitOpenTimeout === "undefined") {
+      this.waitOpenTimeout = 3000;
+    } else {
+      this.waitOpenTimeout = options.waitOpenTimeout;
+    }
     if (typeof options.reconnectDelay === "undefined") {
-      this.reconnectDelay = 3000;
+      this.reconnectDelay = 2000;
     } else {
       this.reconnectDelay = options.reconnectDelay;
     }
@@ -28,7 +33,7 @@ export class Options implements IOptions {
       this.heartbeatInterval = options.heartbeatInterval;
     }
     if (typeof options.defaultRoundTimeout === "undefined") {
-      this.defaultRoundTimeout = 15000;
+      this.defaultRoundTimeout = 5000;
     } else {
       this.defaultRoundTimeout = options.defaultRoundTimeout;
     }
@@ -43,12 +48,12 @@ export class Options implements IOptions {
       this.pullInterval = options.pullInterval;
     }
     if (typeof options.defaultOffset === "undefined") {
-      this.defaultOffset = -600;
+      this.defaultOffset = -300;
     } else {
       this.defaultOffset = options.defaultOffset;
     }
     if (typeof options.getLimit === "undefined") {
-      this.getLimit = 64;
+      this.getLimit = 128;
     } else {
       this.getLimit = options.getLimit;
     }
@@ -56,11 +61,6 @@ export class Options implements IOptions {
       this.queueCapacity = 512;
     } else {
       this.queueCapacity = options.queueCapacity;
-    }
-    if (typeof options.masterEnabled === "undefined") {
-      this.masterEnabled = true;
-    } else {
-      this.masterEnabled = options.masterEnabled;
     }
     if (typeof options.sslEnabled === "undefined") {
       this.sslEnabled = false;

@@ -1,4 +1,5 @@
 export interface IOptions {
+    waitOpenTimeout?: number;
     reconnectDelay?: number;
     heartbeatInterval?: number;
     defaultRoundTimeout?: number;
@@ -7,7 +8,6 @@ export interface IOptions {
     defaultOffset?: number;
     getLimit?: number;
     queueCapacity?: number;
-    masterEnabled?: boolean;
     sslEnabled?: boolean;
     debugRoundEnabled?: boolean;
 }

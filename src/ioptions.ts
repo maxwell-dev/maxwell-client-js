@@ -1,4 +1,6 @@
 export interface IOptions {
+  waitOpenTimeout?: number;
+
   reconnectDelay?: number;
 
   heartbeatInterval?: number;
@@ -14,8 +16,6 @@ export interface IOptions {
   getLimit?: number;
 
   queueCapacity?: number;
-
-  masterEnabled?: boolean;
 
   sslEnabled?: boolean;
 

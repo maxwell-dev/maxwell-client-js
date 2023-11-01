@@ -1,3 +1,4 @@
+import { AbortablePromise } from "@xuchaoqian/abortable-promise";
 import { Options } from "./internal";
 export declare class Master {
     private _endpoints;
@@ -5,7 +6,7 @@ export declare class Master {
     private _endpoint_index;
     private _localstore;
     constructor(endpoints: string[], options: Options);
-    pickFrontend(force?: boolean): Promise<string>;
+    pickFrontend(force?: boolean): AbortablePromise<string>;
     pickFrontends(force?: boolean): Promise<string>;
     private _request;
     private _nextEndpoint;

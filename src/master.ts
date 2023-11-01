@@ -1,4 +1,5 @@
 import axios from "axios";
+import { AbortablePromise } from "@xuchaoqian/abortable-promise";
 import { Localstore } from "@xuchaoqian/localstore";
 import { Options } from "./internal";
 
@@ -18,9 +19,12 @@ export class Master {
     this._localstore = new Localstore();
   }
 
-  async pickFrontend(force = false): Promise<string> {
-    const frontends = await this.pickFrontends(force);
-    return frontends[Math.floor(Math.random() * frontends.length)];
+  pickFrontend(force = false): AbortablePromise<string> {
+    return AbortablePromise.from(this.pickFrontends(force)).then(
+      (frontends) => {
+        return frontends[Math.floor(Math.random() * frontends.length)];
+      }
+    );
   }
 
   async pickFrontends(force = false): Promise<string> {

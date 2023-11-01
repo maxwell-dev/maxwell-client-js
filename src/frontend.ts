@@ -1,88 +1,81 @@
+import { AbortError, AbortablePromise } from "@xuchaoqian/abortable-promise";
 import { msg_types } from "maxwell-protocol";
+import {
+  Event,
+  IEventHandler,
+  TimeoutError,
+  Listenable,
+  MultiAltEndpointsConnection,
+  IConnection,
+} from "maxwell-utils";
+
 import {
   Offset,
   Msg,
   asOffset,
   OnMsg,
   ProtocolMsg,
-  Condition,
-  Code,
-  Event,
   IHeaders,
   Options,
-  TimeoutError,
-  PromisePlus,
-  Listenable,
   QueueManager,
-  Connection,
-  ConnectionManager,
   Master,
   SubscriptionManager,
 } from "./internal";
 
-export class Frontend extends Listenable {
+export class Frontend extends Listenable implements IEventHandler {
   private _endpoints: string[];
-  private _connectionManager: ConnectionManager;
   private _options: Options;
+
+  private _master: Master;
+  private _connection: MultiAltEndpointsConnection;
+  private _failedToConnect: boolean;
+
   private _subscriptionManager: SubscriptionManager;
   private _queueManager: QueueManager;
   private _onMsgs: Map<string, OnMsg>;
-  private _pullTasks: Map<string, PromisePlus>;
-  private _master: Master;
-  private _connection: Connection | null;
-  private _endpointIndex: number;
-  private _failedToConnect: boolean;
-  private _condition: Condition;
+  private _pullTasks: Map<string, AbortablePromise<ProtocolMsg>>;
 
   //===========================================
   // APIs
   //===========================================
 
-  constructor(
-    endpoints: string[],
-    connectionManager: ConnectionManager,
-    options: Options
-  ) {
+  constructor(endpoints: string[], options: Options) {
     super();
 
     this._endpoints = endpoints;
-    this._connectionManager = connectionManager;
     this._options = options;
+
+    this._master = new Master(this._endpoints, this._options);
+    this._connection = new MultiAltEndpointsConnection(
+      this._pickEndpoint.bind(this),
+      this._options,
+      this
+    );
+    this._failedToConnect = false;
 
     this._subscriptionManager = new SubscriptionManager();
     this._queueManager = new QueueManager(this._options.queueCapacity || 1024);
     this._onMsgs = new Map();
     this._pullTasks = new Map();
-
-    this._master = new Master(this._endpoints, this._options);
-    this._connection = null;
-    this._endpointIndex = -1;
-    this._failedToConnect = false;
-    this._connectToFrontend();
-
-    this._condition = new Condition(() => {
-      return this._isConnectionOpen();
-    });
   }
 
   close(): void {
-    this._condition.clear();
-    this._disconnectFromFrontend();
     this._deleteAllPullTasks();
     this._onMsgs.clear();
     this._queueManager.clear();
     this._subscriptionManager.clear();
+    this._connection.close();
   }
 
   subscribe(topic: string, offset: Offset, onMsg: OnMsg): void {
     if (this._subscriptionManager.has(topic)) {
-      console.warn(`Already subscribed: topic: ${topic}`);
+      console.info(`Already subscribed: topic: ${topic}`);
       return;
     }
     this._subscriptionManager.addSubscription(topic, offset);
     this._queueManager.get_or_set(topic);
     this._onMsgs.set(topic, onMsg);
-    if (this._isConnectionOpen()) {
+    if (this._connection.isOpen()) {
       this._newPullTask(topic, offset);
     }
   }
@@ -124,109 +117,62 @@ export class Frontend extends Listenable {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async request(
+  request(
     path: string,
     payload?: unknown,
     headers?: IHeaders
-  ): Promise<any> {
-    const result = await this._waitAndRequest(
-      this._createReqReq(path, payload, headers)
-    );
-    return JSON.parse(result.payload);
+  ): AbortablePromise<any> {
+    return this._connection.waitOpen(this._options.waitOpenTimeout).then(() => {
+      return this._connection
+        .request(
+          this._createReqReq(path, payload, headers),
+          this._options.defaultRoundTimeout
+        )
+        .then((result) => {
+          return JSON.parse(result.payload);
+        });
+    });
+  }
+
+  //===========================================
+  // IEventHandler implementation
+  //===========================================
+  onConnecting(connection: IConnection, ...rest: any[]): void {
+    this.notify(Event.ON_CONNECTING, connection, ...rest);
+  }
+
+  onConnected(connection: IConnection, ...rest: any[]): void {
+    this._failedToConnect = false;
+    this._renewAllTask();
+    this.notify(Event.ON_CONNECTED, connection, ...rest);
+  }
+
+  onDisconnecting(connection: IConnection, ...rest: any[]): void {
+    this.notify(Event.ON_DISCONNECTING, connection, ...rest);
+  }
+
+  onDisconnected(connection: IConnection, ...rest: any[]): void {
+    this._deleteAllPullTasks();
+    this.notify(Event.ON_DISCONNECTED, connection, ...rest);
+  }
+
+  onCorrupted(connection: IConnection, ...rest: any[]): void {
+    this._failedToConnect = true;
+    this.notify(Event.ON_CORRUPTED, connection, ...rest);
   }
 
   //===========================================
   // internal functions
   //===========================================
 
-  private _connectToFrontend() {
-    this._pickEndpoint().then(
-      (endpoint) => {
-        this._connection = this._connectionManager.fetch(endpoint);
-        this._connection.addListener(
-          Event.ON_CONNECTED,
-          this._onConnectToFrontendDone.bind(this)
-        );
-        this._connection.addListener(
-          Event.ON_ERROR,
-          this._onConnectToFrontendFailed.bind(this)
-        );
-        this._connection.addListener(
-          Event.ON_DISCONNECTED,
-          this._onDisconnectFromFrontendDone.bind(this)
-        );
-      },
-      (reason) => {
-        console.error(`Failed to pick endpoint: ${reason.stack}`);
-        setTimeout(() => this._connectToFrontend(), 1000);
-      }
-    );
-  }
-
-  private _disconnectFromFrontend() {
-    if (!this._connection) {
-      return;
-    }
-    this._connection.deleteListener(
-      Event.ON_CONNECTED,
-      this._onConnectToFrontendDone.bind(this)
-    );
-    this._connection.deleteListener(
-      Event.ON_ERROR,
-      this._onConnectToFrontendFailed.bind(this)
-    );
-    this._connection.deleteListener(
-      Event.ON_DISCONNECTED,
-      this._onDisconnectFromFrontendDone.bind(this)
-    );
-    this._connectionManager.release(this._connection);
-    this._connection = null;
-  }
-
-  private _onConnectToFrontendDone() {
-    this._failedToConnect = false;
-    this._condition.notify();
-    this._renewAllTask();
-    this.notify(Event.ON_CONNECTED);
-  }
-
-  private _onConnectToFrontendFailed(code: Code) {
-    if (code === Code.FAILED_TO_CONNECT) {
-      this._failedToConnect = true;
-      this._disconnectFromFrontend();
-      setTimeout(() => this._connectToFrontend(), 1000);
-    }
-  }
-
-  private _onDisconnectFromFrontendDone() {
-    this._deleteAllPullTasks();
-    this.notify(Event.ON_DISCONNECTED);
-  }
-
-  private _isConnectionOpen() {
-    return this._connection !== null && this._connection.isOpen();
-  }
-
-  private async _pickEndpoint(): Promise<string> {
-    if (this._options.masterEnabled) {
-      return await this._master.pickFrontend(this._failedToConnect);
-    } else {
-      return Promise.resolve(this._nextEndpoint());
-    }
-  }
-
-  private _nextEndpoint() {
-    this._endpointIndex += 1;
-    if (this._endpointIndex >= this._endpoints.length) {
-      this._endpointIndex = 0;
-    }
-    return this._endpoints[this._endpointIndex];
+  private _pickEndpoint(): AbortablePromise<string> {
+    return this._master.pickFrontend(this._failedToConnect);
   }
 
   private _renewAllTask() {
     this._subscriptionManager.toPendings();
-    for (const p of this._subscriptionManager.getAllPendings()) {
-      this._newPullTask(p[0], p[1]);
+    for (const pending of this._subscriptionManager.getAllPendings()) {
+      this._newPullTask(pending[0], pending[1]);
     }
   }
 
@@ -245,25 +191,20 @@ export class Frontend extends Listenable {
       this._onMsgs.get(topic)!(queue.lastOffset());
       return;
     }
-    if (this._connection === null) {
-      console.warn("Connection was lost");
-      return;
-    }
+
     const pullTask = this._connection
-      .request(this._createPullReq(topic, offset), 5000)
+      .request(
+        this._createPullReq(topic, offset),
+        this._options.defaultRoundTimeout
+      )
       .then((value: typeof msg_types.pull_rep_t.prototype) => {
-        if (!this._isValidSubscription(topic)) {
-          console.debug(`Already unsubscribed: ${topic}`);
-          return;
-        }
         queue.put(value.msgs as Msg[]);
         const lastOffset = queue.lastOffset();
         const nextOffset = lastOffset + asOffset(1);
         this._subscriptionManager.toDoing(topic, nextOffset);
-        setTimeout(
-          () => this._newPullTask(topic, nextOffset),
-          this._options.pullInterval
-        );
+        setTimeout(() => {
+          this._newPullTask(topic, nextOffset);
+        }, this._options.pullInterval);
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this._onMsgs.get(topic)!(lastOffset);
       })
@@ -271,6 +212,8 @@ export class Frontend extends Listenable {
         if (reason instanceof TimeoutError) {
           console.debug(`Timeout occured: ${reason}, will pull again...`);
           setTimeout(() => this._newPullTask(topic, offset), 0);
+        } else if (reason instanceof AbortError) {
+          console.debug(`Task aborted: ${reason}, stop pulling.`);
         } else {
           console.error(`Error occured: ${reason.stack}, will pull again...`);
           setTimeout(() => this._newPullTask(topic, offset), 1000);
@@ -282,14 +225,14 @@ export class Frontend extends Listenable {
   private _deletePullTask(topic: string) {
     const task = this._pullTasks.get(topic);
     if (typeof task !== "undefined") {
-      task.cancel();
+      task.abort();
       this._pullTasks.delete(topic);
     }
   }
 
   private _deleteAllPullTasks() {
     for (const task of this._pullTasks.values()) {
-      task.cancel();
+      task.abort();
     }
     this._pullTasks.clear();
   }
@@ -300,12 +243,6 @@ export class Frontend extends Listenable {
       this._queueManager.has(topic) &&
       this._onMsgs.has(topic)
     );
-  }
-
-  private async _waitAndRequest(msg: ProtocolMsg) {
-    await this._condition.wait(this._options.defaultRoundTimeout, msg);
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return await this._connection!.request(msg).wait();
   }
 
   private _createPullReq(topic: string, offset: Offset) {

@@ -7,7 +7,7 @@ client.subscribe(topic, -1, () => {
   do {
     msgs = client.receive(topic);
     msgs.forEach((msg) => {
-      console.log("Comsumed msg: ", msg, new Date(msg.timestamp*1000));
+      console.log(`**********[${msg.offset}] ${new Date(msg.timestamp*1000)}`);
     });
   } while (msgs.length > 0);
 });
