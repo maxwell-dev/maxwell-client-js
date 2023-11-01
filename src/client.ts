@@ -24,15 +24,29 @@ export class Client {
     this._frontend = new Frontend(this._endpoints, this._options);
   }
 
-  close(): void {
-    this._frontend.close();
-  }
-
   static singleton(endpoints: string[], options?: IOptions): Client {
     if (typeof globalWithMaxwellClient.maxwellClient === "undefined") {
       globalWithMaxwellClient.maxwellClient = new Client(endpoints, options);
     }
     return globalWithMaxwellClient.maxwellClient;
+  }
+
+  close(): void {
+    this._frontend.close();
+  }
+
+  addConnectionListener(
+    event: Event,
+    listener: (...args: unknown[]) => void
+  ): void {
+    this._frontend.addListener(event, listener);
+  }
+
+  deleteConnectionListener(
+    event: Event,
+    listener: (...args: unknown[]) => void
+  ): void {
+    this._frontend.deleteListener(event, listener);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

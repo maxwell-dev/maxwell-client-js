@@ -202,9 +202,10 @@ export class Frontend extends Listenable implements IEventHandler {
         const lastOffset = queue.lastOffset();
         const nextOffset = lastOffset + asOffset(1);
         this._subscriptionManager.toDoing(topic, nextOffset);
-        setTimeout(() => {
-          this._newPullTask(topic, nextOffset);
-        }, this._options.pullInterval);
+        setTimeout(
+          () => this._newPullTask(topic, nextOffset),
+          this._options.pullInterval
+        );
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this._onMsgs.get(topic)!(lastOffset);
       })

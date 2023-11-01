@@ -5,8 +5,10 @@ export declare class Client {
     private _options;
     private _frontend;
     constructor(endpoints: string[], options?: IOptions);
-    close(): void;
     static singleton(endpoints: string[], options?: IOptions): Client;
+    close(): void;
+    addConnectionListener(event: Event, listener: (...args: unknown[]) => void): void;
+    deleteConnectionListener(event: Event, listener: (...args: unknown[]) => void): void;
     request(path: string, payload?: unknown, headers?: IHeaders): AbortablePromise<any>;
     subscribe(topic: string, offset: Offset, onMsg: OnMsg): void;
     unsubscribe(topic: string): void;
