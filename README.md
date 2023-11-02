@@ -1,1 +1,1 @@
-# maxwell-client-js
+# maxwell-client

@@ -1,8 +1,7 @@
 import { Msg, Offset, asOffset, OnMsg, ProtocolMsg, Timer } from "./types";
 
 import { IHeaders } from "./iheaders";
-import { IOptions } from "./ioptions";
-import { Options } from "./options";
+import { IOptions, Options } from "./options";
 import { Queue } from "./queue";
 import { QueueManager } from "./queue-manager";
 import { Frontend } from "./frontend";

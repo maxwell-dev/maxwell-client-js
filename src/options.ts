@@ -1,7 +1,29 @@
-import { IOptions } from "./internal";
+export interface IOptions {
+  waitOpenTimeout?: number;
+
+  reconnectDelay?: number;
+
+  heartbeatInterval?: number;
+
+  defaultRoundTimeout?: number;
+
+  retryRouteCount?: number;
+
+  pullInterval?: number;
+
+  defaultOffset?: number;
+
+  getLimit?: number;
+
+  queueCapacity?: number;
+
+  sslEnabled?: boolean;
+
+  debugRoundEnabled?: boolean;
+}
 
 export class Options implements IOptions {
-  readonly waitOpenTimeout?: number | undefined;
+  readonly waitOpenTimeout: number;
   readonly reconnectDelay: number;
   readonly heartbeatInterval: number;
   readonly defaultRoundTimeout: number;

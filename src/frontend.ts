@@ -122,16 +122,18 @@ export class Frontend extends Listenable implements IEventHandler {
     payload?: unknown,
     headers?: IHeaders
   ): AbortablePromise<any> {
-    return this._connection.waitOpen(this._options.waitOpenTimeout).then(() => {
-      return this._connection
-        .request(
-          this._createReqReq(path, payload, headers),
-          this._options.defaultRoundTimeout
-        )
-        .then((result) => {
-          return JSON.parse(result.payload);
-        });
-    });
+    return this._connection
+      .waitOpen(this._options.waitOpenTimeout)
+      .then((connection) => {
+        return connection
+          .request(
+            this._createReqReq(path, payload, headers),
+            this._options.defaultRoundTimeout
+          )
+          .then((result) => {
+            return JSON.parse(result.payload);
+          });
+      });
   }
 
   //===========================================
