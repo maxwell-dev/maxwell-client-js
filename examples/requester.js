@@ -25,15 +25,12 @@ async function warm() {
 
 async function runOnce() {
   console.time("answer time@runOnce-1");
-  for (let i = 0; i < 1; i++) {
-    await loop();
-  }
+  await loop();
+  // await new Promise((resolve) => setTimeout(resolve, 10000000));
   console.timeEnd("answer time@runOnce-1");
 
   // console.time("answer time@runOnce-n");
-  // for (let i = 0; i < 1; i++) {
-  //   await Promise.all([loop(), loop(), loop(), loop(), loop()]);
-  // }
+  // await Promise.all([loop(), loop(), loop(), loop(), loop()]);
   // console.timeEnd("answer time@runOnce-n");
 }
 
