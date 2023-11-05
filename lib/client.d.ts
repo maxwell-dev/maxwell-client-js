@@ -3,6 +3,7 @@ import { IOptions, IHeaders, Msg, Offset, OnMsg } from "./internal";
 export declare class Client {
     private _endpoints;
     private _options;
+    private _master;
     private _frontend;
     constructor(endpoints: string[], options?: IOptions);
     static singleton(endpoints: string[], options?: IOptions): Client;

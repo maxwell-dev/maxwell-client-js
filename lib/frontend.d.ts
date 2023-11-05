@@ -1,17 +1,16 @@
 import { AbortablePromise } from "@xuchaoqian/abortable-promise";
 import { IEventHandler, Listenable, IConnection } from "maxwell-utils";
-import { Offset, Msg, OnMsg, IHeaders, Options } from "./internal";
+import { Offset, Msg, OnMsg, IHeaders, Options, Master } from "./internal";
 export declare class Frontend extends Listenable implements IEventHandler {
-    private _endpoints;
-    private _options;
     private _master;
+    private _options;
+    private _subscriptionManager;
+    private _onMsgs;
+    private _queueManager;
+    private _pullTasks;
     private _connection;
     private _failedToConnect;
-    private _subscriptionManager;
-    private _queueManager;
-    private _onMsgs;
-    private _pullTasks;
-    constructor(endpoints: string[], options: Options);
+    constructor(master: Master, options: Options);
     close(): void;
     subscribe(topic: string, offset: Offset, onMsg: OnMsg): void;
     unsubscribe(topic: string): void;

@@ -7,6 +7,7 @@ import {
   Msg,
   Offset,
   OnMsg,
+  Master,
 } from "./internal";
 
 const globalWithMaxwellClient = globalThis as unknown as {
@@ -16,12 +17,14 @@ const globalWithMaxwellClient = globalThis as unknown as {
 export class Client {
   private _endpoints: string[];
   private _options: Options;
+  private _master: Master;
   private _frontend: Frontend;
 
   constructor(endpoints: string[], options?: IOptions) {
     this._endpoints = endpoints;
     this._options = new Options(options);
-    this._frontend = new Frontend(this._endpoints, this._options);
+    this._master = new Master(this._endpoints, this._options);
+    this._frontend = new Frontend(this._master, this._options);
   }
 
   static singleton(endpoints: string[], options?: IOptions): Client {

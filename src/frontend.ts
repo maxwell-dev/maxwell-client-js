@@ -23,47 +23,44 @@ import {
 } from "./internal";
 
 export class Frontend extends Listenable implements IEventHandler {
-  private _endpoints: string[];
+  private _master: Master;
   private _options: Options;
 
-  private _master: Master;
+  private _subscriptionManager: SubscriptionManager;
+  private _onMsgs: Map<string, OnMsg>;
+  private _queueManager: QueueManager;
+  private _pullTasks: Map<string, AbortablePromise<ProtocolMsg>>;
+
   private _connection: MultiAltEndpointsConnection;
   private _failedToConnect: boolean;
-
-  private _subscriptionManager: SubscriptionManager;
-  private _queueManager: QueueManager;
-  private _onMsgs: Map<string, OnMsg>;
-  private _pullTasks: Map<string, AbortablePromise<ProtocolMsg>>;
 
   //===========================================
   // APIs
   //===========================================
 
-  constructor(endpoints: string[], options: Options) {
+  constructor(master: Master, options: Options) {
     super();
-
-    this._endpoints = endpoints;
+    this._master = master;
     this._options = options;
 
-    this._master = new Master(this._endpoints, this._options);
+    this._subscriptionManager = new SubscriptionManager();
+    this._onMsgs = new Map();
+    this._queueManager = new QueueManager(this._options.queueCapacity || 1024);
+    this._pullTasks = new Map();
+
     this._connection = new MultiAltEndpointsConnection(
       this._pickEndpoint.bind(this),
       this._options,
       this
     );
     this._failedToConnect = false;
-
-    this._subscriptionManager = new SubscriptionManager();
-    this._queueManager = new QueueManager(this._options.queueCapacity || 1024);
-    this._onMsgs = new Map();
-    this._pullTasks = new Map();
   }
 
   close(): void {
     this._deleteAllPullTasks();
+    this._subscriptionManager.clear();
     this._onMsgs.clear();
     this._queueManager.clear();
-    this._subscriptionManager.clear();
     this._connection.close();
   }
 
@@ -73,8 +70,8 @@ export class Frontend extends Listenable implements IEventHandler {
       return;
     }
     this._subscriptionManager.addSubscription(topic, offset);
-    this._queueManager.get_or_set(topic);
     this._onMsgs.set(topic, onMsg);
+    this._queueManager.get_or_set(topic);
     if (this._connection.isOpen()) {
       this._newPullTask(topic, offset);
     }
@@ -82,9 +79,9 @@ export class Frontend extends Listenable implements IEventHandler {
 
   unsubscribe(topic: string): void {
     this._deletePullTask(topic);
+    this._subscriptionManager.deleteSubscription(topic);
     this._onMsgs.delete(topic);
     this._queueManager.delete(topic);
-    this._subscriptionManager.deleteSubscription(topic);
   }
 
   get(topic: string, offset: Offset, limit: number): Msg[] {
@@ -200,6 +197,14 @@ export class Frontend extends Listenable implements IEventHandler {
         this._options.defaultRoundTimeout
       )
       .then((value: typeof msg_types.pull_rep_t.prototype) => {
+        if (value.msgs.length < 1) {
+          console.info(`No msgs pulled: topic: ${topic}, offset: ${offset}`);
+          setTimeout(
+            () => this._newPullTask(topic, offset),
+            this._options.pullInterval
+          );
+          return;
+        }
         queue.put(value.msgs as Msg[]);
         const lastOffset = queue.lastOffset();
         const nextOffset = lastOffset + asOffset(1);
