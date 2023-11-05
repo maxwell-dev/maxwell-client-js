@@ -18,3 +18,5 @@ yarn-error.log
 index.html
 dist
 data
+lib/examples
+lib/src
