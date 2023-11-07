@@ -176,11 +176,11 @@ export class Frontend extends Listenable implements IEventHandler {
   }
 
   private _newPullTask(topic: string, offset: Offset) {
-    this._deletePullTask(topic);
     if (!this._isValidSubscription(topic)) {
       console.debug(`Already unsubscribed: ${topic}`);
       return;
     }
+    this._deletePullTask(topic);
 
     const queue = this._queueManager.get_or_set(topic);
     if (queue.isFull()) {
@@ -197,6 +197,11 @@ export class Frontend extends Listenable implements IEventHandler {
         this._options.defaultRoundTimeout
       )
       .then((value: typeof msg_types.pull_rep_t.prototype) => {
+        if (!this._isValidSubscription(topic)) {
+          console.debug(`Already unsubscribed: ${topic}`);
+          return;
+        }
+
         if (value.msgs.length < 1) {
           console.info(`No msgs pulled: topic: ${topic}, offset: ${offset}`);
           setTimeout(
