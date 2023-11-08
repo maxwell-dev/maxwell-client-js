@@ -4,12 +4,11 @@ export interface IOptions {
     heartbeatInterval?: number;
     roundTimeout?: number;
     retryRouteCount?: number;
-    pullInterval?: number;
-    defaultOffset?: number;
-    pullLimit?: number;
-    queueCapacity?: number;
     sslEnabled?: boolean;
     roundDebugEnabled?: boolean;
+    pullInterval?: number;
+    pullLimit?: number;
+    queueCapacity?: number;
 }
 export declare class Options implements IOptions {
     readonly waitOpenTimeout: number;
