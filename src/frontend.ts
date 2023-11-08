@@ -125,7 +125,7 @@ export class Frontend extends Listenable implements IEventHandler {
         return connection
           .request(
             this._createReqReq(path, payload, headers),
-            this._options.defaultRoundTimeout
+            this._options.roundTimeout
           )
           .then((result) => {
             return JSON.parse(result.payload);
@@ -192,10 +192,7 @@ export class Frontend extends Listenable implements IEventHandler {
     }
 
     const pullTask = this._connection
-      .request(
-        this._createPullReq(topic, offset),
-        this._options.defaultRoundTimeout
-      )
+      .request(this._createPullReq(topic, offset), this._options.roundTimeout)
       .then((value: typeof msg_types.pull_rep_t.prototype) => {
         if (!this._isValidSubscription(topic)) {
           console.debug(`Already unsubscribed: ${topic}`);
@@ -264,7 +261,7 @@ export class Frontend extends Listenable implements IEventHandler {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       offset: offset,
-      limit: this._options.getLimit,
+      limit: this._options.pullLimit,
     });
   }
 

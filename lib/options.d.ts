@@ -2,27 +2,26 @@ export interface IOptions {
     waitOpenTimeout?: number;
     reconnectDelay?: number;
     heartbeatInterval?: number;
-    defaultRoundTimeout?: number;
+    roundTimeout?: number;
     retryRouteCount?: number;
     pullInterval?: number;
     defaultOffset?: number;
-    getLimit?: number;
+    pullLimit?: number;
     queueCapacity?: number;
     sslEnabled?: boolean;
-    debugRoundEnabled?: boolean;
+    roundDebugEnabled?: boolean;
 }
 export declare class Options implements IOptions {
     readonly waitOpenTimeout: number;
     readonly reconnectDelay: number;
     readonly heartbeatInterval: number;
-    readonly defaultRoundTimeout: number;
+    readonly roundTimeout: number;
     readonly retryRouteCount: number;
-    readonly pullInterval: number;
-    readonly defaultOffset: number;
-    readonly getLimit: number;
-    readonly queueCapacity: number;
     readonly sslEnabled: boolean;
-    readonly debugRoundEnabled: boolean;
+    readonly roundDebugEnabled: boolean;
+    readonly pullInterval: number;
+    readonly pullLimit: number;
+    readonly queueCapacity: number;
     constructor(options?: IOptions);
 }
 export default Options;
