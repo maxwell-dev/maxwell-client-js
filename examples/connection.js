@@ -1,12 +1,12 @@
-import * as maxwell from "../src";
+import { Connection, Event, Options } from "maxwell-utils";
 
 async function runOnce() {
   try {
-    const conn = new maxwell.Connection("localhost:10000", new maxwell.Options());
+    const conn = new Connection("localhost:10000", new Options());
     const onConnected = function onConnected() {
-      //conn.close();
+      conn.close();
     }
-    conn.addListener(maxwell.Event.ON_CONNECTED, onConnected);
+    conn.addListener(Event.ON_CONNECTED, onConnected);
   } catch (reason) {
     console.error(`Error occured: ${reason.stack}`);
   }

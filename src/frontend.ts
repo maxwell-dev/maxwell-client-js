@@ -184,7 +184,9 @@ export class Frontend extends Listenable implements IEventHandler {
 
     const queue = this._queueManager.get_or_set(topic);
     if (queue.isFull()) {
-      console.warn(`Queue is full(${queue.size()}), waiting for consuming...`);
+      console.warn(
+        `Queue(${topic}) is full(${queue.size()}), waiting for consuming...`
+      );
       setTimeout(() => this._newPullTask(topic, offset), 1000);
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       this._onMsgs.get(topic)!(queue.lastOffset());
@@ -220,10 +222,12 @@ export class Frontend extends Listenable implements IEventHandler {
       })
       .catch((reason: any) => {
         if (reason instanceof TimeoutError) {
-          console.debug(`Timeout occured: ${reason}, will pull again...`);
+          console.debug(
+            `Timeout occured: ${reason.message}, will pull again...`
+          );
           setTimeout(() => this._newPullTask(topic, offset), 0);
         } else if (reason instanceof AbortError) {
-          console.debug(`Task aborted: ${reason}, stop pulling.`);
+          console.debug(`Task aborted: ${reason.message}, stop pulling.`);
         } else {
           console.error(`Error occured: ${reason.stack}, will pull again...`);
           setTimeout(() => this._newPullTask(topic, offset), 1000);
