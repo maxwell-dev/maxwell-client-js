@@ -1,7 +1,7 @@
 import * as maxwell from "../src";
 
-let client =  maxwell.Client.singleton(["localhost:8081"], {
-  sslEnabled: false,
+let client =  maxwell.Client.singleton(["jx003.aijiaoyi.xyz:1443"], {
+  sslEnabled: true,
   roundDebugEnabled: false,
 });
 
@@ -26,7 +26,7 @@ async function warm() {
 async function runOnce() {
   console.time("answer time@runOnce-1");
   await loop();
-  // await new Promise((resolve) => setTimeout(resolve, 10000000));
+  await new Promise((resolve) => setTimeout(resolve, 1000));
   console.timeEnd("answer time@runOnce-1");
 
   // console.time("answer time@runOnce-n");

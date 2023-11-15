@@ -1,4 +1,4 @@
-import axios from "axios";
+import { fetch } from "cross-fetch";
 import { AbortablePromise } from "@xuchaoqian/abortable-promise";
 import { Localstore } from "@xuchaoqian/localstore";
 import { Options } from "./internal";
@@ -60,13 +60,18 @@ export class Master {
       const url = this._buildUrl(this._nextEndpoint(), path);
       try {
         console.info(`Requesting master: url: ${url}`);
-        const response = await axios.get(url, { timeout: 5000 });
+        const response = await fetch(url, {
+          method: "GET",
+          mode: "cors",
+          credentials: "omit",
+          signal: AbortSignal.timeout(5000),
+        });
         if (response.status !== 200) {
           throw new Error(
             `Failed to request master: status: ${response.status}, desc: ${response.statusText}`
           );
         }
-        rep = response.data;
+        rep = await response.json();
         break;
       } catch (e) {
         tries--;
