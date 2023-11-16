@@ -1,3 +1,4 @@
+import "abortcontroller-polyfill/dist/abortcontroller-polyfill-only";
 import { AbortablePromise } from "@xuchaoqian/abortable-promise";
 import { Options } from "./internal";
 export declare class Master {

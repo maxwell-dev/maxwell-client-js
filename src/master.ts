@@ -1,4 +1,5 @@
 import { fetch } from "cross-fetch";
+import "abortcontroller-polyfill/dist/abortcontroller-polyfill-only";
 import { AbortablePromise } from "@xuchaoqian/abortable-promise";
 import { Localstore } from "@xuchaoqian/localstore";
 import { TimeoutError } from "maxwell-utils";
