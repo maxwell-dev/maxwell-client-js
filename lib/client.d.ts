@@ -10,6 +10,7 @@ export declare class Client {
     close(): void;
     addConnectionListener(event: Event, listener: (...args: unknown[]) => void): void;
     deleteConnectionListener(event: Event, listener: (...args: unknown[]) => void): void;
+    reopenConnection(): void;
     request(path: string, payload?: unknown, headers?: IHeaders): AbortablePromise<any>;
     subscribe(topic: string, offset: Offset, onMsg: OnMsg): void;
     unsubscribe(topic: string): void;
