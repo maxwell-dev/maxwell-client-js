@@ -1,7 +1,7 @@
 import * as maxwell from "../src";
 
-let client =  maxwell.Client.singleton(["jx003.aijiaoyi.xyz:1443"], {
-  sslEnabled: true,
+let client =  maxwell.Client.singleton(["localhost:8081"], {
+  sslEnabled: false,
   roundDebugEnabled: false,
 });
 
