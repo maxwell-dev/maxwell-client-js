@@ -227,7 +227,7 @@ export class Frontend extends Listenable implements IEventHandler {
           );
           setTimeout(() => this._newPullTask(topic, offset), 0);
         } else if (reason instanceof AbortError) {
-          console.debug(`Task aborted: ${reason.message}, stop pulling.`);
+          console.debug(`Task aborted, stop pulling.`);
         } else {
           console.error(`Error occured: ${reason.stack}, will pull again...`);
           setTimeout(() => this._newPullTask(topic, offset), 1000);
