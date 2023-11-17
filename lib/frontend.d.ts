@@ -12,7 +12,6 @@ export declare class Frontend extends Listenable implements IEventHandler {
     private _failedToConnect;
     constructor(master: Master, options: Options);
     close(): void;
-    reopenConnection(): void;
     subscribe(topic: string, offset: Offset, onMsg: OnMsg): void;
     unsubscribe(topic: string): void;
     get(topic: string, offset: Offset, limit: number): Msg[];

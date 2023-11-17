@@ -26,7 +26,7 @@ async function warm() {
 async function runOnce() {
   console.time("answer time@runOnce-1");
   await loop();
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await new Promise((resolve) => setTimeout(resolve, 15000));
   console.timeEnd("answer time@runOnce-1");
 
   // console.time("answer time@runOnce-n");

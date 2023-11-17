@@ -64,10 +64,6 @@ export class Frontend extends Listenable implements IEventHandler {
     this._connection.close();
   }
 
-  reopenConnection(): void {
-    this._connection.reopen();
-  }
-
   subscribe(topic: string, offset: Offset, onMsg: OnMsg): void {
     if (this._subscriptionManager.has(topic)) {
       console.info(`Already subscribed: topic: ${topic}`);

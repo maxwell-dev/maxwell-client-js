@@ -52,10 +52,6 @@ export class Client {
     this._frontend.deleteListener(event, listener);
   }
 
-  reopenConnection(): void {
-    this._frontend.reopenConnection();
-  }
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   request(
     path: string,
