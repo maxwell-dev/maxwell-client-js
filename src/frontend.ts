@@ -177,7 +177,7 @@ export class Frontend extends Listenable implements IEventHandler {
 
   private _newPullTask(topic: string, offset: Offset) {
     if (!this._isValidSubscription(topic)) {
-      console.debug(`Already unsubscribed: ${topic}`);
+      console.debug(`Already unsubscribed: topic: ${topic}`);
       return;
     }
     this._deletePullTask(topic);
@@ -197,7 +197,7 @@ export class Frontend extends Listenable implements IEventHandler {
       .request(this._createPullReq(topic, offset), this._options.roundTimeout)
       .then((value: typeof msg_types.pull_rep_t.prototype) => {
         if (!this._isValidSubscription(topic)) {
-          console.debug(`Already unsubscribed: ${topic}`);
+          console.debug(`Already unsubscribed: topic: ${topic}`);
           return;
         }
 
@@ -223,13 +223,15 @@ export class Frontend extends Listenable implements IEventHandler {
       .catch((reason: any) => {
         if (reason instanceof TimeoutError) {
           console.debug(
-            `Timeout occured: ${reason.message}, will pull again...`
+            `Timeout occured: request: ${reason.message}, will pull again...`
           );
           setTimeout(() => this._newPullTask(topic, offset), 0);
         } else if (reason instanceof AbortError) {
-          console.debug(`Task(${topic}) aborted, stop pulling.`);
+          console.debug(`Task aborted: topic: ${topic}, stop pulling.`);
         } else {
-          console.error(`Error occured: ${reason.stack}, will pull again...`);
+          console.error(
+            `Error occured: reason: ${reason.stack}, will pull again...`
+          );
           setTimeout(() => this._newPullTask(topic, offset), 1000);
         }
       });

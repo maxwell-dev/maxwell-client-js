@@ -64,14 +64,16 @@ export class Master {
         }
         rep = await response.json();
         break;
-      } catch (e) {
+      } catch (reason: any) {
         tries--;
-        console.error(`Failed to request master: url: ${url}, error: ${e}`);
+        console.error(
+          `Failed to request master: url: ${url}, reason: ${reason}`
+        );
       }
     }
     if (tries === 0) {
       throw new Error(
-        `Failed to request all endpoints [${this._endpoints}] of master cluster.`
+        `Failed to request all endpoints(${this._endpoints}) of master cluster.`
       );
     }
     if (!rep) {
