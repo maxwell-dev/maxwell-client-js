@@ -172,6 +172,9 @@ export class Frontend extends Listenable implements IEventHandler {
     this._subscriptionManager.toPendings();
     for (const pending of this._subscriptionManager.getAllPendings()) {
       this._newPullTask(pending[0], pending[1]);
+      console.debug(
+        `Renew pull task: topic: ${pending[0]}, offset: ${pending[1]}`
+      );
     }
   }
 
@@ -223,7 +226,7 @@ export class Frontend extends Listenable implements IEventHandler {
       .catch((reason: any) => {
         if (reason instanceof TimeoutError) {
           console.debug(
-            `Timeout occured: request: ${reason.message}, will pull again...`
+            `Pulling timeout: req: ${reason.message}, will pull again...`
           );
           setTimeout(() => this._newPullTask(topic, offset), 0);
         } else if (reason instanceof AbortError) {
@@ -236,6 +239,7 @@ export class Frontend extends Listenable implements IEventHandler {
         }
       });
     this._pullTasks.set(topic, pullTask);
+    console.debug(`New pull task: topic: ${topic}, offset: ${offset}`);
   }
 
   private _deletePullTask(topic: string) {
@@ -243,12 +247,18 @@ export class Frontend extends Listenable implements IEventHandler {
     if (typeof task !== "undefined") {
       task.abort();
       this._pullTasks.delete(topic);
+      console.debug(`Delete pull task: topic: ${topic}`);
     }
   }
 
   private _deleteAllPullTasks() {
-    for (const task of this._pullTasks.values()) {
-      task.abort();
+    // for (const task of this._pullTasks.values()) {
+    //   task.abort();
+    // }
+    // this._pullTasks.clear();
+    for (const task of this._pullTasks.entries()) {
+      task[1].abort();
+      console.debug(`Delete pull task: topic: ${task[0]}`);
     }
     this._pullTasks.clear();
   }
