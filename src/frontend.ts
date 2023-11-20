@@ -172,7 +172,7 @@ export class Frontend extends Listenable implements IEventHandler {
     this._subscriptionManager.toPendings();
     for (const pending of this._subscriptionManager.getAllPendings()) {
       console.debug(
-        `Renewing task: topic: ${pending[0]}, offset: ${pending[1]}`
+        `Renewing pull task: topic: ${pending[0]}, offset: ${pending[1]}`
       );
       this._newPullTask(pending[0], pending[1]);
     }

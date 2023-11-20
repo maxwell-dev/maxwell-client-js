@@ -1,6 +1,6 @@
 {
   "name": "maxwell-client",
-  "version": "1.2.26",
+  "version": "1.2.27",
   "description": "Maxwell client implementation for js/ts.",
   "author": "Chaoqian Xu <chaoranxu@gmail.com>",
   "license": "MIT",
