@@ -226,7 +226,7 @@ export class Frontend extends Listenable implements IEventHandler {
       .catch((reason: any) => {
         if (reason instanceof TimeoutError) {
           console.debug(
-            `Pulling timeout: req: ${reason.message}, will pull again...`
+            `Pull timeout: req: ${reason.message}, will pull again...`
           );
           setTimeout(() => this._newPullTask(topic, offset), 0);
         } else if (reason instanceof AbortError) {
