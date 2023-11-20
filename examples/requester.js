@@ -2,12 +2,12 @@ import * as maxwell from "../src";
 
 let client =  maxwell.Client.singleton(["localhost:8081"], {
   sslEnabled: false,
-  roundDebugEnabled: false,
+  roundDebugEnabled: true,
 });
 
 async function loop() {
   try {
-    let p = client.request("/hello",  {"content": "world"}, { sourceEnabled: true });
+    let p = client.request("/hello",  {"content": "world"}, { sourceEnabled: true});
     const result = await p;
     console.log(`Received result: `, result);
   } catch (reason) {

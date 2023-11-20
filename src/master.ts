@@ -67,7 +67,7 @@ export class Master {
       } catch (reason: any) {
         tries--;
         console.error(
-          `Failed to request master: url: ${url}, reason: ${reason}`
+          `Failed to request master: url: ${url}, reason: ${reason.message}`
         );
       }
     }
