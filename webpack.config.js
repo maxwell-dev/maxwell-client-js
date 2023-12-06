@@ -5,9 +5,9 @@ const webpack = require('webpack');
 module.exports = {
   mode: "development",
   entry: {
-    // connection: "./examples/connection.js",
+    connection: "./examples/connection.js",
     requester: "./examples/requester.js",
-    // subscriber: "./examples/subscriber.js",
+    subscriber: "./examples/subscriber.js",
   },
   output: {
     filename: "[name].bundle.js",
