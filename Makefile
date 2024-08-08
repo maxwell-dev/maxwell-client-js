@@ -10,6 +10,9 @@ install:
 build:
 	${NPM} run build
 
+pack:
+	${NPM} run pack
+
 test:
 	${NPM} run test
 

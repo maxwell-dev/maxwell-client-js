@@ -27,9 +27,24 @@ export class Client {
     this._frontend = new Frontend(this._master, this._options);
   }
 
+  /** @deprecated */
   static singleton(endpoints: string[], options?: IOptions): Client {
     if (typeof globalWithMaxwellClient.maxwellClient === "undefined") {
       globalWithMaxwellClient.maxwellClient = new Client(endpoints, options);
+    }
+    return globalWithMaxwellClient.maxwellClient;
+  }
+
+  static createInstance(endpoints: string[], options?: IOptions): Client {
+    if (typeof globalWithMaxwellClient.maxwellClient === "undefined") {
+      globalWithMaxwellClient.maxwellClient = new Client(endpoints, options);
+    }
+    return globalWithMaxwellClient.maxwellClient;
+  }
+
+  static getInstance(): Client {
+    if (typeof globalWithMaxwellClient.maxwellClient === "undefined") {
+      throw new Error("The instance has not initialized yet!");
     }
     return globalWithMaxwellClient.maxwellClient;
   }
@@ -40,14 +55,14 @@ export class Client {
 
   addConnectionListener(
     event: Event,
-    listener: (...args: unknown[]) => void
+    listener: (...args: unknown[]) => void,
   ): void {
     this._frontend.addListener(event, listener);
   }
 
   deleteConnectionListener(
     event: Event,
-    listener: (...args: unknown[]) => void
+    listener: (...args: unknown[]) => void,
   ): void {
     this._frontend.deleteListener(event, listener);
   }
@@ -56,7 +71,7 @@ export class Client {
   request(
     path: string,
     payload?: unknown,
-    headers?: IHeaders
+    headers?: IHeaders,
   ): AbortablePromise<any> {
     return this._frontend.request(path, payload, headers);
   }

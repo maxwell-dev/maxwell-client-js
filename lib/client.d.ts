@@ -7,6 +7,8 @@ export declare class Client {
     private _frontend;
     constructor(endpoints: string[], options?: IOptions);
     static singleton(endpoints: string[], options?: IOptions): Client;
+    static createInstance(endpoints: string[], options?: IOptions): Client;
+    static getInstance(): Client;
     close(): void;
     addConnectionListener(event: Event, listener: (...args: unknown[]) => void): void;
     deleteConnectionListener(event: Event, listener: (...args: unknown[]) => void): void;
