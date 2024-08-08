@@ -5,7 +5,7 @@ export declare class Master {
     private _endpoints;
     private _options;
     private _endpoint_index;
-    private _localstore;
+    private _localstore?;
     constructor(endpoints: string[], options: Options);
     pickFrontend(force?: boolean): AbortablePromise<string>;
     pickFrontends(force?: boolean): Promise<string>;

@@ -6,6 +6,7 @@ export interface IOptions {
   retryRouteCount?: number;
   sslEnabled?: boolean;
   roundDebugEnabled?: boolean;
+  localStoreEnabled?: boolean;
   pullInterval?: number;
   pullLimit?: number;
   queueCapacity?: number;
@@ -19,6 +20,7 @@ export class Options implements IOptions {
   readonly retryRouteCount: number;
   readonly sslEnabled: boolean;
   readonly roundDebugEnabled: boolean;
+  readonly localStoreEnabled?: boolean;
   readonly pullInterval: number;
   readonly pullLimit: number;
   readonly queueCapacity: number;
@@ -61,6 +63,11 @@ export class Options implements IOptions {
       this.roundDebugEnabled = false;
     } else {
       this.roundDebugEnabled = options.roundDebugEnabled;
+    }
+    if (typeof options.localStoreEnabled === "undefined") {
+      this.localStoreEnabled = true;
+    } else {
+      this.localStoreEnabled = options.localStoreEnabled;
     }
     if (typeof options.pullInterval === "undefined") {
       this.pullInterval = 10;

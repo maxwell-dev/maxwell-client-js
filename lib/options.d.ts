@@ -6,6 +6,7 @@ export interface IOptions {
     retryRouteCount?: number;
     sslEnabled?: boolean;
     roundDebugEnabled?: boolean;
+    localStoreEnabled?: boolean;
     pullInterval?: number;
     pullLimit?: number;
     queueCapacity?: number;
@@ -18,6 +19,7 @@ export declare class Options implements IOptions {
     readonly retryRouteCount: number;
     readonly sslEnabled: boolean;
     readonly roundDebugEnabled: boolean;
+    readonly localStoreEnabled?: boolean;
     readonly pullInterval: number;
     readonly pullLimit: number;
     readonly queueCapacity: number;

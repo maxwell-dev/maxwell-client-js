@@ -12,13 +12,15 @@ export class Master {
   private _endpoints: string[];
   private _options: Options;
   private _endpoint_index: number;
-  private _localstore: Localstore;
+  private _localstore?: Localstore;
 
   constructor(endpoints: string[], options: Options) {
     this._endpoints = endpoints;
     this._options = options;
     this._endpoint_index = -1;
-    this._localstore = new Localstore();
+    if (this._options.localStoreEnabled) {
+      this._localstore = new Localstore();
+    }
   }
 
   pickFrontend(force = false): AbortablePromise<string> {
@@ -45,7 +47,7 @@ export class Master {
   }
 
   private async _request(path: string): Promise<any> {
-    let rep;
+    let rep: any;
     let tries = this._endpoints.length;
     while (tries > 0) {
       const url = this._buildUrl(this._nextEndpoint(), path);
@@ -84,11 +86,14 @@ export class Master {
   }
 
   private async _getEndpointsFromCache() {
-    const endpointsInfoString = await this._localstore.get(CACHE_KEY);
+    if (!this._options.localStoreEnabled) {
+      return undefined;
+    }
+    const endpointsInfoString = await this._localstore?.get(CACHE_KEY);
     if (typeof endpointsInfoString !== "undefined") {
       const endpointsInfo = JSON.parse(endpointsInfoString);
       if (Master._now() - endpointsInfo.ts >= CACHE_TTL) {
-        await this._localstore.remove(CACHE_KEY);
+        await this._localstore?.remove(CACHE_KEY);
       } else {
         return endpointsInfo.endpoints;
       }
@@ -97,7 +102,10 @@ export class Master {
   }
 
   private async _setEndpointsToCache(endpoints: string[]) {
-    await this._localstore.set(
+    if (!this._options.localStoreEnabled) {
+      return undefined;
+    }
+    await this._localstore?.set(
       CACHE_KEY,
       JSON.stringify({
         ts: Master._now(),
