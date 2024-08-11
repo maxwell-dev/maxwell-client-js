@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { msg_types } from "maxwell-protocol";
 export type Offset = number;
 export declare function asOffset(offset: number | bigint): Offset;
