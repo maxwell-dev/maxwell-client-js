@@ -51,7 +51,7 @@ export class Frontend extends Listenable implements IEventHandler {
     this._connection = new MultiAltEndpointsConnection(
       this._pickEndpoint.bind(this),
       this._options,
-      this
+      this,
     );
     this._failedToConnect = false;
   }
@@ -66,7 +66,7 @@ export class Frontend extends Listenable implements IEventHandler {
 
   subscribe(topic: string, offset: Offset, onMsg: OnMsg): void {
     if (this._subscriptionManager.has(topic)) {
-      console.info(`Already subscribed: topic: ${topic}`);
+      console.debug(`Already subscribed: topic: ${topic}`);
       return;
     }
     this._subscriptionManager.addSubscription(topic, offset);
@@ -117,7 +117,7 @@ export class Frontend extends Listenable implements IEventHandler {
   request(
     path: string,
     payload?: unknown,
-    headers?: IHeaders
+    headers?: IHeaders,
   ): AbortablePromise<any> {
     return this._connection
       .waitOpen(this._options.waitOpenTimeout)
@@ -125,7 +125,7 @@ export class Frontend extends Listenable implements IEventHandler {
         return connection
           .request(
             this._createReqReq(path, payload, headers),
-            this._options.roundTimeout
+            this._options.roundTimeout,
           )
           .then((result) => {
             return JSON.parse(result.payload);
@@ -172,7 +172,7 @@ export class Frontend extends Listenable implements IEventHandler {
     this._subscriptionManager.toPendings();
     for (const pending of this._subscriptionManager.getAllPendings()) {
       console.debug(
-        `Renewing pull task: topic: ${pending[0]}, offset: ${pending[1]}`
+        `Renewing pull task: topic: ${pending[0]}, offset: ${pending[1]}`,
       );
       this._newPullTask(pending[0], pending[1]);
     }
@@ -188,11 +188,10 @@ export class Frontend extends Listenable implements IEventHandler {
     const queue = this._queueManager.get_or_set(topic);
     if (queue.isFull()) {
       console.warn(
-        `Queue(${topic}) is full(${queue.size()}), waiting for consuming...`
+        `Queue(${topic}) is full(${queue.size()}), waiting for consuming...`,
       );
       setTimeout(() => this._newPullTask(topic, offset), 1000);
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this._onMsgs.get(topic)!(queue.lastOffset());
+      this._onMsgs.get(topic)?.(queue.lastOffset(), topic);
       return;
     }
 
@@ -208,7 +207,7 @@ export class Frontend extends Listenable implements IEventHandler {
           console.info(`No msgs pulled: topic: ${topic}, offset: ${offset}`);
           setTimeout(
             () => this._newPullTask(topic, offset),
-            this._options.pullInterval
+            this._options.pullInterval,
           );
           return;
         }
@@ -218,22 +217,21 @@ export class Frontend extends Listenable implements IEventHandler {
         this._subscriptionManager.toDoing(topic, nextOffset);
         setTimeout(
           () => this._newPullTask(topic, nextOffset),
-          this._options.pullInterval
+          this._options.pullInterval,
         );
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        this._onMsgs.get(topic)!(lastOffset);
+        this._onMsgs.get(topic)?.(lastOffset, topic);
       })
       .catch((reason: any) => {
         if (reason instanceof TimeoutError) {
           console.debug(
-            `Pull timeout: req: ${reason.message}, will pull again...`
+            `Pull timeout: req: ${reason.message}, will pull again...`,
           );
           setTimeout(() => this._newPullTask(topic, offset), 0);
         } else if (reason instanceof AbortError) {
           console.debug(`Task aborted: topic: ${topic}, stop pulling.`);
         } else {
           console.error(
-            `Error occured: reason: ${reason.stack}, will pull again...`
+            `Error occured: reason: ${reason.stack}, will pull again...`,
           );
           setTimeout(() => this._newPullTask(topic, offset), 1000);
         }
