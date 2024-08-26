@@ -20,3 +20,4 @@ dist
 data
 lib/examples
 lib/src
+package-lock.json
