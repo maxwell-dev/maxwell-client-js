@@ -1,5 +1,5 @@
 import { MultiAltEndpointsConnection } from "maxwell-utils";
-import { FunctionConsumer, IConsumer, Offset, Options, ConsumerKey } from "./internal";
+import { Offset, Options, ConsumerKey, IConsumer, FunctionConsumer } from "./internal";
 export declare class SubscriberManager {
     private _connection;
     private _options;

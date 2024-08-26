@@ -1,9 +1,10 @@
 import { AbortablePromise } from "@xuchaoqian/abortable-promise";
 import {
+  Offset,
+  Headers,
   Options,
   defaultOptions,
-  Headers,
-  Offset,
+  ConsumerKey,
   IConsumer,
   FunctionConsumer,
   WsChannel,
@@ -66,8 +67,8 @@ export class Client {
     return this._wsChannel.subscribe(topic, offset, consumer);
   }
 
-  unsubscribe(topic: string): boolean {
-    return this._wsChannel.unsubscribe(topic);
+  unsubscribe(topic: string, key: ConsumerKey): boolean {
+    return this._wsChannel.unsubscribe(topic, key);
   }
 
   addConnectionListener(

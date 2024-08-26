@@ -1,9 +1,7 @@
 import * as maxwell from "../src";
 
 const client = maxwell.Client.create(["127.0.0.1:8081"], {
-  sslEnabled: false,
-  roundLogEnabled: false,
-  localStoreEnabled: false,
+  sslEnabled: false, roundLogEnabled: false, localStoreEnabled: false,
 });
 
 async function loop() {

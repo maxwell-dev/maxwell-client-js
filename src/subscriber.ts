@@ -1,19 +1,19 @@
+import { AbortablePromise, AbortError } from "@xuchaoqian/abortable-promise";
 import { msg_types } from "maxwell-protocol";
 import {
   Condition,
   MultiAltEndpointsConnection,
   TimeoutError,
 } from "maxwell-utils";
-import { AbortablePromise, AbortError } from "@xuchaoqian/abortable-promise";
 import {
-  asOffset,
-  asProtobufOffset,
-  ConsumerKey,
-  IConsumer,
   Msg,
   Offset,
+  asOffset,
+  asProtobufOffset,
   Options,
   Queue,
+  ConsumerKey,
+  IConsumer,
 } from "./internal";
 
 export class Subscriber {
@@ -21,12 +21,12 @@ export class Subscriber {
   private readonly _connection: MultiAltEndpointsConnection;
   private readonly _options: Required<Options>;
   private _queue: Queue;
-  private _queueCond: Condition<Subscriber>;
+  private _queueCond: Condition<void>;
   private _consumers: Map<ConsumerKey, IConsumer>;
   private _nextOffset: Offset;
   private _shouldRun: boolean;
-  private readonly _pullTask: AbortablePromise<void>;
-  private readonly _consumeTask: AbortablePromise<void>;
+  private _pullTask: AbortablePromise<void> | undefined;
+  private _consumeTask: AbortablePromise<void> | undefined;
 
   constructor(
     topic: string,
@@ -38,18 +38,19 @@ export class Subscriber {
     this._connection = connection;
     this._options = options;
     this._queue = new Queue(this._options.queueCapacity);
-    this._queueCond = new Condition(this, () => this._queue.size() > 0);
+    this._queueCond = new Condition(void 0, () => this._queue.size() > 0);
     this._consumers = new Map();
     this._nextOffset = offset;
     this._shouldRun = true;
-    this._pullTask = AbortablePromise.from(this._repeatPull());
-    this._consumeTask = AbortablePromise.from(this._repeatConsume());
+
+    this._repeatPull();
+    this._repeatConsume();
   }
 
   close(): void {
     this._shouldRun = false;
-    this._pullTask.abort();
-    this._consumeTask.abort();
+    this._pullTask?.abort();
+    this._consumeTask?.abort();
     this._consumers.clear();
     this._queue.clear();
   }
@@ -77,12 +78,17 @@ export class Subscriber {
   async _repeatPull(): Promise<void> {
     while (this._shouldRun) {
       try {
-        await this._pull();
+        this._pullTask = AbortablePromise.from(this._pull());
+        await this._pullTask;
       } catch (e: any) {
         if (e instanceof TimeoutError) {
-          console.debug(`Pull timeout: req: ${e.message}, will pull again...`);
+          console.debug(
+            `Puller was idle: req: ${e.message}, will pull again...`,
+          );
         } else if (e instanceof AbortError) {
-          console.debug(`Task aborted: topic: ${this._topic}, stop pulling.`);
+          console.debug(
+            `Pull task aborted: topic: ${this._topic}, stop pulling.`,
+          );
           break;
         } else {
           console.error(
@@ -129,15 +135,19 @@ export class Subscriber {
   async _repeatConsume(): Promise<void> {
     while (this._shouldRun) {
       try {
-        await this._queueCond.wait();
-        await this._consume();
+        this._consumeTask = this._queueCond.wait().then(() => {
+          return AbortablePromise.from(this._consume());
+        });
+        await this._consumeTask;
       } catch (e: any) {
         if (e instanceof TimeoutError) {
           console.debug(
-            `Wait timeout: id: ${e.message}, will consume again...`,
+            `Consumers were idle: topic: ${this._topic}, will consume again...`,
           );
         } else if (e instanceof AbortError) {
-          console.debug(`Task aborted: topic: ${this._topic}, stop consume.`);
+          console.debug(
+            `Consume task aborted: topic: ${this._topic}, stop consuming.`,
+          );
           break;
         } else {
           console.error(

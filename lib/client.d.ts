@@ -1,5 +1,5 @@
 import { AbortablePromise } from "@xuchaoqian/abortable-promise";
-import { Options, Headers, Offset, IConsumer, FunctionConsumer } from "./internal";
+import { Offset, Headers, Options, ConsumerKey, IConsumer, FunctionConsumer } from "./internal";
 export declare class Client {
     private _endpoints;
     private _options;
@@ -13,7 +13,7 @@ export declare class Client {
     ws(path: string, payload?: unknown, headers?: Headers): AbortablePromise<any>;
     requestViaWs(path: string, payload?: unknown, headers?: Headers): AbortablePromise<any>;
     subscribe(topic: string, offset: Offset, consumer: IConsumer | FunctionConsumer): boolean;
-    unsubscribe(topic: string): boolean;
+    unsubscribe(topic: string, key: ConsumerKey): boolean;
     addConnectionListener(event: Event, listener: (...args: unknown[]) => void): void;
     deleteConnectionListener(event: Event, listener: (...args: unknown[]) => void): void;
 }

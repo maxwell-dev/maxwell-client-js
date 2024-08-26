@@ -1,13 +1,12 @@
 import { MultiAltEndpointsConnection } from "maxwell-utils";
 import {
-  FunctionConsumer,
-  IConsumer,
   Offset,
-  Subscriber,
   Options,
-  DefaultConsumer,
   ConsumerKey,
-  DEFAULT_CONSUMER_KEY,
+  IConsumer,
+  DefaultConsumer,
+  FunctionConsumer,
+  Subscriber,
 } from "./internal";
 
 export class SubscriberManager {
@@ -58,6 +57,10 @@ export class SubscriberManager {
     return result;
   }
 
+  /**
+   * will close the specified subscriber and deleted related consumers
+   * if key is not provided
+   */
   unsubscribe(topic: string, key?: ConsumerKey): boolean {
     const subscriber = this._subscribers.get(topic);
     if (typeof subscriber === "undefined") {
@@ -65,7 +68,10 @@ export class SubscriberManager {
       return false;
     }
     if (typeof key === "undefined") {
-      key = DEFAULT_CONSUMER_KEY;
+      console.debug(`Delete all consumers: topic: ${topic}`);
+      this._subscribers.delete(topic);
+      subscriber.close();
+      return true;
     }
     const result = subscriber.deleteConsumer(key);
     if (!result) {
@@ -75,8 +81,8 @@ export class SubscriberManager {
     }
     if (subscriber.countConsumers() < 1) {
       console.debug(`No consumer left, delete it: topic: ${topic}`);
-      subscriber.close();
       this._subscribers.delete(topic);
+      subscriber.close();
     }
     return result;
   }

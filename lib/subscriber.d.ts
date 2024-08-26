@@ -1,6 +1,6 @@
 import { msg_types } from "maxwell-protocol";
 import { MultiAltEndpointsConnection } from "maxwell-utils";
-import { ConsumerKey, IConsumer, Offset, Options } from "./internal";
+import { Offset, Options, ConsumerKey, IConsumer } from "./internal";
 export declare class Subscriber {
     private readonly _topic;
     private readonly _connection;
@@ -10,8 +10,8 @@ export declare class Subscriber {
     private _consumers;
     private _nextOffset;
     private _shouldRun;
-    private readonly _pullTask;
-    private readonly _consumeTask;
+    private _pullTask;
+    private _consumeTask;
     constructor(topic: string, offset: Offset, connection: MultiAltEndpointsConnection, options: Required<Options>);
     close(): void;
     addConsumer(consumer: IConsumer): boolean;
