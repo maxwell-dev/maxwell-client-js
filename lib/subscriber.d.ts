@@ -10,8 +10,8 @@ export declare class Subscriber {
     private _consumers;
     private _nextOffset;
     private _shouldRun;
-    private _pullTask;
-    private _consumeTask;
+    private _currPullTask;
+    private _currConsumeTask;
     constructor(topic: string, offset: Offset, connection: MultiAltEndpointsConnection, options: Required<Options>);
     close(): void;
     addConsumer(consumer: IConsumer): boolean;

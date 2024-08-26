@@ -25,8 +25,8 @@ export class Subscriber {
   private _consumers: Map<ConsumerKey, IConsumer>;
   private _nextOffset: Offset;
   private _shouldRun: boolean;
-  private _pullTask: AbortablePromise<void> | undefined;
-  private _consumeTask: AbortablePromise<void> | undefined;
+  private _currPullTask: AbortablePromise<void> | undefined;
+  private _currConsumeTask: AbortablePromise<void> | undefined;
 
   constructor(
     topic: string,
@@ -49,8 +49,8 @@ export class Subscriber {
 
   close(): void {
     this._shouldRun = false;
-    this._pullTask?.abort();
-    this._consumeTask?.abort();
+    this._currPullTask?.abort();
+    this._currConsumeTask?.abort();
     this._consumers.clear();
     this._queue.clear();
   }
@@ -78,8 +78,8 @@ export class Subscriber {
   async _repeatPull(): Promise<void> {
     while (this._shouldRun) {
       try {
-        this._pullTask = AbortablePromise.from(this._pull());
-        await this._pullTask;
+        this._currPullTask = AbortablePromise.from(this._pull());
+        await this._currPullTask;
       } catch (e: any) {
         if (e instanceof TimeoutError) {
           console.debug(
@@ -122,23 +122,24 @@ export class Subscriber {
       console.info(
         `No msgs pulled: topic: ${this._topic}, offset: ${pullReq.offset}`,
       );
-      await this._sleep(this._options.pullInterval);
+      await this._sleep(1000);
       return;
     }
     this._queue.put(pullRep.msgs as Msg[]);
     this._nextOffset = this._queue.lastOffset() + asOffset(1);
     this._queueCond.notify();
-    await this._sleep(this._options.pullInterval);
-    return;
+    if (this._options.pullInterval > 0) {
+      await this._sleep(this._options.pullInterval);
+    }
   }
 
   async _repeatConsume(): Promise<void> {
     while (this._shouldRun) {
       try {
-        this._consumeTask = this._queueCond.wait().then(() => {
+        this._currConsumeTask = this._queueCond.wait().then(() => {
           return AbortablePromise.from(this._consume());
         });
-        await this._consumeTask;
+        await this._currConsumeTask;
       } catch (e: any) {
         if (e instanceof TimeoutError) {
           console.debug(
