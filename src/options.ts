@@ -1,90 +1,63 @@
-export interface IOptions {
+export interface Options {
   waitOpenTimeout?: number;
   reconnectDelay?: number;
   heartbeatInterval?: number;
   roundTimeout?: number;
   retryRouteCount?: number;
   sslEnabled?: boolean;
-  roundDebugEnabled?: boolean;
+  roundLogEnabled?: boolean;
   localStoreEnabled?: boolean;
   pullInterval?: number;
   pullLimit?: number;
   queueCapacity?: number;
+  consumeBatchSize?: number;
+  consumeBatchInterval?: number;
 }
 
-export class Options implements IOptions {
-  readonly waitOpenTimeout: number;
-  readonly reconnectDelay: number;
-  readonly heartbeatInterval: number;
-  readonly roundTimeout: number;
-  readonly retryRouteCount: number;
-  readonly sslEnabled: boolean;
-  readonly roundDebugEnabled: boolean;
-  readonly localStoreEnabled?: boolean;
-  readonly pullInterval: number;
-  readonly pullLimit: number;
-  readonly queueCapacity: number;
-
-  constructor(options?: IOptions) {
-    if (typeof options === "undefined") {
-      options = {};
-    }
-    if (typeof options.waitOpenTimeout === "undefined") {
-      this.waitOpenTimeout = 3000;
-    } else {
-      this.waitOpenTimeout = options.waitOpenTimeout;
-    }
-    if (typeof options.reconnectDelay === "undefined") {
-      this.reconnectDelay = 2000;
-    } else {
-      this.reconnectDelay = options.reconnectDelay;
-    }
-    if (typeof options.heartbeatInterval === "undefined") {
-      this.heartbeatInterval = 10000;
-    } else {
-      this.heartbeatInterval = options.heartbeatInterval;
-    }
-    if (typeof options.roundTimeout === "undefined") {
-      this.roundTimeout = 5000;
-    } else {
-      this.roundTimeout = options.roundTimeout;
-    }
-    if (typeof options.retryRouteCount === "undefined") {
-      this.retryRouteCount = 0;
-    } else {
-      this.retryRouteCount = options.retryRouteCount;
-    }
-    if (typeof options.sslEnabled === "undefined") {
-      this.sslEnabled = false;
-    } else {
-      this.sslEnabled = options.sslEnabled;
-    }
-    if (typeof options.roundDebugEnabled === "undefined") {
-      this.roundDebugEnabled = false;
-    } else {
-      this.roundDebugEnabled = options.roundDebugEnabled;
-    }
-    if (typeof options.localStoreEnabled === "undefined") {
-      this.localStoreEnabled = true;
-    } else {
-      this.localStoreEnabled = options.localStoreEnabled;
-    }
-    if (typeof options.pullInterval === "undefined") {
-      this.pullInterval = 10;
-    } else {
-      this.pullInterval = options.pullInterval;
-    }
-    if (typeof options.pullLimit === "undefined") {
-      this.pullLimit = 128;
-    } else {
-      this.pullLimit = options.pullLimit;
-    }
-    if (typeof options.queueCapacity === "undefined") {
-      this.queueCapacity = 512;
-    } else {
-      this.queueCapacity = options.queueCapacity;
-    }
+export function defaultOptions(options?: Options): Required<Options> {
+  if (typeof options === "undefined") {
+    options = {};
   }
+  if (typeof options.waitOpenTimeout === "undefined") {
+    options.waitOpenTimeout = 3000;
+  }
+  if (typeof options.reconnectDelay === "undefined") {
+    options.reconnectDelay = 2000;
+  }
+  if (typeof options.heartbeatInterval === "undefined") {
+    options.heartbeatInterval = 10000;
+  }
+  if (typeof options.roundTimeout === "undefined") {
+    options.roundTimeout = 5000;
+  }
+  if (typeof options.retryRouteCount === "undefined") {
+    options.retryRouteCount = 0;
+  }
+  if (typeof options.sslEnabled === "undefined") {
+    options.sslEnabled = false;
+  }
+  if (typeof options.roundLogEnabled === "undefined") {
+    options.roundLogEnabled = false;
+  }
+  if (typeof options.localStoreEnabled === "undefined") {
+    options.localStoreEnabled = true;
+  }
+  if (typeof options.pullInterval === "undefined") {
+    options.pullInterval = 0;
+  }
+  if (typeof options.pullLimit === "undefined") {
+    options.pullLimit = 128;
+  }
+  if (typeof options.queueCapacity === "undefined") {
+    options.queueCapacity = 512;
+  }
+  if (typeof options.consumeBatchSize === "undefined") {
+    options.consumeBatchSize = 64;
+  }
+  if (typeof options.consumeBatchInterval === "undefined") {
+    options.consumeBatchInterval = 0;
+  }
+  return options as Required<Options>;
 }
 
 export default Options;

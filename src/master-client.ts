@@ -8,7 +8,7 @@ import { Options } from "./internal";
 const CACHE_KEY = "maxwell-client.frontend-endpoints";
 const CACHE_TTL = 60 * 60 * 24;
 
-export class Master {
+export class MasterClient {
   private _endpoints: string[];
   private _options: Options;
   private _endpoint_index: number;
@@ -27,7 +27,7 @@ export class Master {
     return AbortablePromise.from(this.pickFrontends(force)).then(
       (frontends) => {
         return frontends[Math.floor(Math.random() * frontends.length)];
-      }
+      },
     );
   }
 
@@ -53,7 +53,7 @@ export class Master {
       const url = this._buildUrl(this._nextEndpoint(), path);
       try {
         console.info(`Requesting master: url: ${url}`);
-        const response = await Master._fetchWithTimeout(url, {
+        const response = await MasterClient._fetchWithTimeout(url, {
           method: "GET",
           mode: "cors",
           credentials: "omit",
@@ -61,7 +61,7 @@ export class Master {
         });
         if (response.status !== 200) {
           throw new Error(
-            `Failed to request master: status: ${response.status}, desc: ${response.statusText}`
+            `Failed to request master: status: ${response.status}, desc: ${response.statusText}`,
           );
         }
         rep = await response.json();
@@ -69,13 +69,13 @@ export class Master {
       } catch (reason: any) {
         tries--;
         console.error(
-          `Failed to request master: url: ${url}, reason: ${reason.message}`
+          `Failed to request master: url: ${url}, reason: ${reason.message}`,
         );
       }
     }
     if (tries === 0) {
       throw new Error(
-        `Failed to request all endpoints(${this._endpoints}) of master cluster.`
+        `Failed to request all endpoints(${this._endpoints}) of master cluster.`,
       );
     }
     if (!rep) {
@@ -92,7 +92,7 @@ export class Master {
     const endpointsInfoString = await this._localstore?.get(CACHE_KEY);
     if (typeof endpointsInfoString !== "undefined") {
       const endpointsInfo = JSON.parse(endpointsInfoString);
-      if (Master._now() - endpointsInfo.ts >= CACHE_TTL) {
+      if (MasterClient._now() - endpointsInfo.ts >= CACHE_TTL) {
         await this._localstore?.remove(CACHE_KEY);
       } else {
         return endpointsInfo.endpoints;
@@ -108,9 +108,9 @@ export class Master {
     await this._localstore?.set(
       CACHE_KEY,
       JSON.stringify({
-        ts: Master._now(),
+        ts: MasterClient._now(),
         endpoints,
-      })
+      }),
     );
   }
 
@@ -136,7 +136,7 @@ export class Master {
     const controller = new AbortController();
     const timerId = setTimeout(
       () => controller.abort(new TimeoutError()),
-      timeout
+      timeout,
     );
     try {
       return await fetch(resource, {
@@ -153,4 +153,4 @@ export class Master {
   }
 }
 
-export default Master;
+export default MasterClient;

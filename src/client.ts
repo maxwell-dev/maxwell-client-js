@@ -1,99 +1,87 @@
 import { AbortablePromise } from "@xuchaoqian/abortable-promise";
 import {
-  IOptions,
   Options,
-  Frontend,
-  IHeaders,
-  Msg,
+  defaultOptions,
+  Headers,
   Offset,
-  OnMsg,
-  Master,
+  IConsumer,
+  FunctionConsumer,
+  WsChannel,
+  MasterClient,
 } from "./internal";
-
-const globalWithMaxwellClient = globalThis as unknown as {
-  maxwellClient: Client | undefined;
-};
 
 export class Client {
   private _endpoints: string[];
-  private _options: Options;
-  private _master: Master;
-  private _frontend: Frontend;
+  private _options: Required<Options>;
+  private _masterClient: MasterClient;
+  private _wsChannel: WsChannel;
+  private static _instance: Client | undefined;
 
-  constructor(endpoints: string[], options?: IOptions) {
+  constructor(endpoints: string[], options?: Options) {
     this._endpoints = endpoints;
-    this._options = new Options(options);
-    this._master = new Master(this._endpoints, this._options);
-    this._frontend = new Frontend(this._master, this._options);
+    this._options = defaultOptions(options);
+    this._masterClient = new MasterClient(this._endpoints, this._options);
+    this._wsChannel = new WsChannel(this._masterClient, this._options);
   }
 
-  /** @deprecated */
-  static singleton(endpoints: string[], options?: IOptions): Client {
-    if (typeof globalWithMaxwellClient.maxwellClient === "undefined") {
-      globalWithMaxwellClient.maxwellClient = new Client(endpoints, options);
+  static create(endpoints: string[], options?: Options): Client {
+    if (typeof Client._instance === "undefined") {
+      Client._instance = new Client(endpoints, options);
     }
-    return globalWithMaxwellClient.maxwellClient;
+    return Client._instance;
   }
 
-  static createInstance(endpoints: string[], options?: IOptions): Client {
-    if (typeof globalWithMaxwellClient.maxwellClient === "undefined") {
-      globalWithMaxwellClient.maxwellClient = new Client(endpoints, options);
-    }
-    return globalWithMaxwellClient.maxwellClient;
-  }
-
-  static getInstance(): Client {
-    if (typeof globalWithMaxwellClient.maxwellClient === "undefined") {
+  static get instance(): Client {
+    if (typeof Client._instance === "undefined") {
       throw new Error("The instance has not initialized yet!");
     }
-    return globalWithMaxwellClient.maxwellClient;
+    return Client._instance;
   }
 
   close(): void {
-    this._frontend.close();
+    this._wsChannel.close();
+  }
+
+  ws(
+    path: string,
+    payload?: unknown,
+    headers?: Headers,
+  ): AbortablePromise<any> {
+    return this._wsChannel.request(path, payload, headers);
+  }
+
+  requestViaWs(
+    path: string,
+    payload?: unknown,
+    headers?: Headers,
+  ): AbortablePromise<any> {
+    return this._wsChannel.request(path, payload, headers);
+  }
+
+  subscribe(
+    topic: string,
+    offset: Offset,
+    consumer: IConsumer | FunctionConsumer,
+  ): boolean {
+    return this._wsChannel.subscribe(topic, offset, consumer);
+  }
+
+  unsubscribe(topic: string): boolean {
+    return this._wsChannel.unsubscribe(topic);
   }
 
   addConnectionListener(
     event: Event,
     listener: (...args: unknown[]) => void,
   ): void {
-    this._frontend.addListener(event, listener);
+    this._wsChannel.addListener(event, listener);
   }
 
   deleteConnectionListener(
     event: Event,
     listener: (...args: unknown[]) => void,
   ): void {
-    this._frontend.deleteListener(event, listener);
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  request(
-    path: string,
-    payload?: unknown,
-    headers?: IHeaders,
-  ): AbortablePromise<any> {
-    return this._frontend.request(path, payload, headers);
-  }
-
-  subscribe(topic: string, offset: Offset, onMsg: OnMsg): void {
-    this._frontend.subscribe(topic, offset, onMsg);
-  }
-
-  unsubscribe(topic: string): void {
-    this._frontend.unsubscribe(topic);
-  }
-
-  get(topic: string, offset: Offset, limit: number): Msg[] {
-    return this._frontend.get(topic, offset, limit);
-  }
-
-  commit(topic: string, offset: Offset): void {
-    this._frontend.commit(topic, offset);
-  }
-
-  receive(topic: string, offset: Offset, limit: number): Msg[] {
-    return this._frontend.receive(topic, offset, limit);
+    this._wsChannel.deleteListener(event, listener);
   }
 }
 

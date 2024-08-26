@@ -1,14 +1,14 @@
 import * as maxwell from "../src";
 
-const client = maxwell.Client.singleton(["127.0.0.1:8081"], {
+const client = maxwell.Client.create(["127.0.0.1:8081"], {
   sslEnabled: false,
-  roundDebugEnabled: false,
+  roundLogEnabled: false,
   localStoreEnabled: false,
 });
 
 async function loop() {
   try {
-    const p = client.request(
+    const p = client.requestViaWs(
       "/hello",
       { content: "x".repeat(1) },
       { sourceEnabled: true },

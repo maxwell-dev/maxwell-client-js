@@ -1,7 +1,7 @@
 import "abortcontroller-polyfill/dist/abortcontroller-polyfill-only";
 import { AbortablePromise } from "@xuchaoqian/abortable-promise";
 import { Options } from "./internal";
-export declare class Master {
+export declare class MasterClient {
     private _endpoints;
     private _options;
     private _endpoint_index;
@@ -17,4 +17,4 @@ export declare class Master {
     private static _fetchWithTimeout;
     private static _now;
 }
-export default Master;
+export default MasterClient;

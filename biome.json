@@ -1,13 +1,8 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.8.3/schema.json",
   "files": {
-    "ignore": [
-      "node_modules/**",
-      "assets/**",
-      "public/**",
-      "build/**",
-      "dist/**"
-    ]
+    "ignore": ["src/**/*.d.ts", "src/**/*.js"],
+    "include": ["src/**/*.ts"]
   },
   "linter": {
     "enabled": true,

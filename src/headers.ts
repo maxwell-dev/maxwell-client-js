@@ -1,7 +1,7 @@
-export type IHeaders = {
+export type Headers = {
   sourceEnabled?: boolean;
   agent?: string | null;
   endpoint?: string | null;
 };
 
-export default IHeaders;
+export default Headers;

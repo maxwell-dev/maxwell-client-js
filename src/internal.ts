@@ -1,28 +1,40 @@
-import { Msg, Offset, asOffset, OnMsg, ProtocolMsg, Timer } from "./types";
+import { Msg, Offset, asOffset, asProtobufOffset } from "./types";
 
-import { IHeaders } from "./headers";
-import { IOptions, Options } from "./options";
+import { Headers } from "./headers";
+import { Options, defaultOptions } from "./options";
 import { Queue } from "./queue";
-import { QueueManager } from "./queue-manager";
-import { Frontend } from "./frontend";
-import { Master } from "./master";
-import { SubscriptionManager } from "./subscription-manager";
+import {
+  ConsumerKey,
+  DEFAULT_CONSUMER_KEY,
+  IConsumer,
+  DefaultConsumer,
+  FunctionConsumer,
+} from "./consumer";
+import { ConsumerManager } from "./consumer-manager";
+import { Subscriber } from "./subscriber";
+import { SubscriberManager } from "./subscriber-manager";
+import { WsChannel } from "./ws-channel";
+import { MasterClient } from "./master-client";
 import { Client } from "./client";
 
 export {
   Msg,
   Offset,
   asOffset,
-  OnMsg,
-  ProtocolMsg,
-  Timer,
-  IHeaders,
-  IOptions,
+  asProtobufOffset,
+  Headers,
   Options,
+  defaultOptions,
   Queue,
-  QueueManager,
-  Frontend,
-  Master,
-  SubscriptionManager,
+  ConsumerKey,
+  DEFAULT_CONSUMER_KEY,
+  IConsumer,
+  DefaultConsumer,
+  FunctionConsumer,
+  ConsumerManager,
+  Subscriber,
+  SubscriberManager,
+  WsChannel,
+  MasterClient,
   Client,
 };

@@ -1,22 +1,20 @@
 import { AbortablePromise } from "@xuchaoqian/abortable-promise";
-import { IOptions, IHeaders, Msg, Offset, OnMsg } from "./internal";
+import { Options, Headers, Offset, IConsumer, FunctionConsumer } from "./internal";
 export declare class Client {
     private _endpoints;
     private _options;
-    private _master;
-    private _frontend;
-    constructor(endpoints: string[], options?: IOptions);
-    static singleton(endpoints: string[], options?: IOptions): Client;
-    static createInstance(endpoints: string[], options?: IOptions): Client;
-    static getInstance(): Client;
+    private _masterClient;
+    private _wsChannel;
+    private static _instance;
+    constructor(endpoints: string[], options?: Options);
+    static create(endpoints: string[], options?: Options): Client;
+    static get instance(): Client;
     close(): void;
+    ws(path: string, payload?: unknown, headers?: Headers): AbortablePromise<any>;
+    requestViaWs(path: string, payload?: unknown, headers?: Headers): AbortablePromise<any>;
+    subscribe(topic: string, offset: Offset, consumer: IConsumer | FunctionConsumer): boolean;
+    unsubscribe(topic: string): boolean;
     addConnectionListener(event: Event, listener: (...args: unknown[]) => void): void;
     deleteConnectionListener(event: Event, listener: (...args: unknown[]) => void): void;
-    request(path: string, payload?: unknown, headers?: IHeaders): AbortablePromise<any>;
-    subscribe(topic: string, offset: Offset, onMsg: OnMsg): void;
-    unsubscribe(topic: string): void;
-    get(topic: string, offset: Offset, limit: number): Msg[];
-    commit(topic: string, offset: Offset): void;
-    receive(topic: string, offset: Offset, limit: number): Msg[];
 }
 export default Client;
