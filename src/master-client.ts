@@ -1,26 +1,39 @@
 import { fetch } from "cross-fetch";
-import "abortcontroller-polyfill/dist/abortcontroller-polyfill-only";
-import { AbortablePromise } from "@xuchaoqian/abortable-promise";
+import { TimeoutError, AbortablePromise } from "@xuchaoqian/abortable-promise";
 import { Localstore } from "@xuchaoqian/localstore";
-import { TimeoutError } from "maxwell-utils";
+import { nowInSeconds } from "maxwell-utils";
 import { Options } from "./internal";
 
 const CACHE_KEY = "maxwell-client.frontend-endpoints";
-const CACHE_TTL = 60 * 60 * 24;
+const CACHE_TTL = 60 * 60 * 8;
 
 export class MasterClient {
   private _endpoints: string[];
   private _options: Options;
-  private _endpoint_index: number;
+  private _endpointIndex: number;
   private _localstore?: Localstore;
+  private static _instances: Map<string, MasterClient> = new Map();
 
-  constructor(endpoints: string[], options: Options) {
+  private constructor(endpoints: string[], options: Options) {
     this._endpoints = endpoints;
     this._options = options;
-    this._endpoint_index = -1;
+    this._endpointIndex = -1;
     if (this._options.localStoreEnabled) {
       this._localstore = new Localstore();
     }
+  }
+
+  static getOrCreateInstance(
+    endpoints: string[],
+    options: Options,
+  ): MasterClient {
+    const key = `${options.endpointPicker}:${endpoints.sort().join(",")}`;
+    let instance: MasterClient | undefined = MasterClient._instances.get(key);
+    if (typeof instance === "undefined") {
+      instance = new MasterClient(endpoints, options);
+      MasterClient._instances.set(key, instance);
+    }
+    return instance;
   }
 
   pickFrontend(force = false): AbortablePromise<string> {
@@ -69,7 +82,7 @@ export class MasterClient {
       } catch (reason: any) {
         tries--;
         console.error(
-          `Failed to request master: url: ${url}, reason: ${reason.message}`,
+          `Failed to request master: url: ${url}, reason: ${reason}`,
         );
       }
     }
@@ -92,7 +105,7 @@ export class MasterClient {
     const endpointsInfoString = await this._localstore?.get(CACHE_KEY);
     if (typeof endpointsInfoString !== "undefined") {
       const endpointsInfo = JSON.parse(endpointsInfoString);
-      if (MasterClient._now() - endpointsInfo.ts >= CACHE_TTL) {
+      if (nowInSeconds() - endpointsInfo.ts >= CACHE_TTL) {
         await this._localstore?.remove(CACHE_KEY);
       } else {
         return endpointsInfo.endpoints;
@@ -108,18 +121,18 @@ export class MasterClient {
     await this._localstore?.set(
       CACHE_KEY,
       JSON.stringify({
-        ts: MasterClient._now(),
+        ts: nowInSeconds(),
         endpoints,
       }),
     );
   }
 
   private _nextEndpoint() {
-    this._endpoint_index += 1;
-    if (this._endpoint_index >= this._endpoints.length) {
-      this._endpoint_index = 0;
+    this._endpointIndex += 1;
+    if (this._endpointIndex >= this._endpoints.length) {
+      this._endpointIndex = 0;
     }
-    return this._endpoints[this._endpoint_index];
+    return this._endpoints[this._endpointIndex];
   }
 
   private _buildUrl(endpoint: string, path: string) {
@@ -146,10 +159,6 @@ export class MasterClient {
     } finally {
       clearTimeout(timerId);
     }
-  }
-
-  private static _now() {
-    return Math.floor(new Date().getTime() / 1000);
   }
 }
 

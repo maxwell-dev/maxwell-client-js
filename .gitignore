@@ -16,6 +16,7 @@ yarn-error.log
 .idea
 .vscode
 index.html
+coverage
 dist
 data
 lib/examples

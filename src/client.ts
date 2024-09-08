@@ -1,28 +1,21 @@
 import { AbortablePromise } from "@xuchaoqian/abortable-promise";
-import {
-  Offset,
-  Headers,
-  Options,
-  defaultOptions,
-  ConsumerKey,
-  IConsumer,
-  FunctionConsumer,
-  WsChannel,
-  MasterClient,
-} from "./internal";
+import { Options, buildOptions, ws, http } from "./internal";
 
 export class Client {
-  private _endpoints: string[];
   private _options: Required<Options>;
-  private _masterClient: MasterClient;
-  private _wsChannel: WsChannel;
+  private _httpRequester: http.Requester;
+  private _wsRequester: ws.Requester;
+  private _subscriberManager: ws.SubscriberManager;
   private static _instance: Client | undefined;
 
   constructor(endpoints: string[], options?: Options) {
-    this._endpoints = endpoints;
-    this._options = defaultOptions(options);
-    this._masterClient = new MasterClient(this._endpoints, this._options);
-    this._wsChannel = new WsChannel(this._masterClient, this._options);
+    this._options = buildOptions(options);
+    this._httpRequester = new http.Requester(endpoints, this._options);
+    this._wsRequester = new ws.Requester(endpoints, this._options);
+    this._subscriberManager = new ws.SubscriberManager(
+      endpoints,
+      this._options,
+    );
   }
 
   static create(endpoints: string[], options?: Options): Client {
@@ -40,49 +33,88 @@ export class Client {
   }
 
   close(): void {
-    this._wsChannel.close();
+    this._httpRequester.close();
+    this._wsRequester.close();
+    this._subscriberManager.close();
+  }
+
+  get(path: string, options?: http.RequestOptions): AbortablePromise<any> {
+    return this._httpRequester.get(path, options);
+  }
+
+  delete(path: string, options?: http.RequestOptions): AbortablePromise<any> {
+    return this._httpRequester.delete(path, options);
+  }
+
+  head(path: string, options?: http.RequestOptions): AbortablePromise<any> {
+    return this._httpRequester.head(path, options);
+  }
+
+  options(path: string, options?: http.RequestOptions): AbortablePromise<any> {
+    return this._httpRequester.options(path, options);
+  }
+
+  post(path: string, options?: http.RequestOptions): AbortablePromise<any> {
+    return this._httpRequester.post(path, options);
+  }
+
+  put(path: string, options?: http.RequestOptions): AbortablePromise<any> {
+    return this._httpRequester.put(path, options);
+  }
+
+  patch(path: string, options?: http.RequestOptions): AbortablePromise<any> {
+    return this._httpRequester.patch(path, options);
+  }
+
+  requestViaHttp(
+    path: string,
+    options?: http.RequestOptions,
+  ): AbortablePromise<any> {
+    return this._httpRequester.request(path, options);
   }
 
   ws(
     path: string,
     payload?: unknown,
-    headers?: Headers,
+    headers?: ws.Headers,
+    roundTimeout?: number,
   ): AbortablePromise<any> {
-    return this._wsChannel.request(path, payload, headers);
+    return this._wsRequester.request(path, payload, headers, roundTimeout);
   }
 
   requestViaWs(
     path: string,
     payload?: unknown,
-    headers?: Headers,
+    headers?: ws.Headers,
+    roundTimeout?: number,
   ): AbortablePromise<any> {
-    return this._wsChannel.request(path, payload, headers);
+    return this._wsRequester.request(path, payload, headers, roundTimeout);
   }
 
   subscribe(
     topic: string,
-    offset: Offset,
-    consumer: IConsumer | FunctionConsumer,
+    offset: number,
+    consumer: ws.IConsumer | ws.FunctionConsumer,
   ): boolean {
-    return this._wsChannel.subscribe(topic, offset, consumer);
+    return this._subscriberManager.subscribe(topic, offset, consumer);
   }
 
-  unsubscribe(topic: string, key: ConsumerKey): boolean {
-    return this._wsChannel.unsubscribe(topic, key);
+  unsubscribe(topic: string, key: ws.ConsumerKey): boolean {
+    return this._subscriberManager.unsubscribe(topic, key);
   }
 
   addConnectionListener(
     event: Event,
     listener: (...args: unknown[]) => void,
   ): void {
-    this._wsChannel.addListener(event, listener);
+    this._subscriberManager.addListener(event, listener);
   }
 
   deleteConnectionListener(
     event: Event,
     listener: (...args: unknown[]) => void,
   ): void {
-    this._wsChannel.deleteListener(event, listener);
+    this._subscriberManager.deleteListener(event, listener);
   }
 }
 

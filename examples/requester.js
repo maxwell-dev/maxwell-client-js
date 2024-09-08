@@ -1,7 +1,9 @@
 import * as maxwell from "../src";
 
 const client = maxwell.Client.create(["127.0.0.1:8081"], {
-  sslEnabled: false, roundLogEnabled: false, localStoreEnabled: false,
+  sslEnabled: false,
+  roundLogEnabled: false,
+  localStoreEnabled: false,
 });
 
 async function loop() {
@@ -29,12 +31,7 @@ async function warm() {
 async function runOnce() {
   console.time("answer time@runOnce-1");
   await loop();
-  // await new Promise((resolve) => setTimeout(resolve, 20000));
   console.timeEnd("answer time@runOnce-1");
-
-  // console.time("answer time@runOnce-n");
-  // await Promise.all([loop(), loop(), loop(), loop(), loop()]);
-  // console.timeEnd("answer time@runOnce-n");
 }
 
 (async function run() {
