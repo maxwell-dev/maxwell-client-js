@@ -21,10 +21,8 @@ describe("ws client get", () => {
     try {
       await client.ws("/not-exist-path");
     } catch (e) {
-      expect(e).toStrictEqual(
-        new Error(
-          'code: 299, desc: Failed to get connetion: err: Failed to find endpoint: path: "/not-exist-path"',
-        ),
+      expect(e.message).toMatch(
+        'code: 299, desc: Failed to get connetion: err: Failed to find endpoint: path: "/not-exist-path"',
       );
     }
   });

@@ -1,11 +1,15 @@
 import { AbortablePromise } from "@xuchaoqian/abortable-promise";
 import { msg_types } from "maxwell-protocol";
-import { ConnectionPool } from "maxwell-utils";
+import {
+  ConnectionPool,
+  MultiAltEndpointsConnection,
+  MultiAltEndpointsConnectionFactory,
+} from "maxwell-utils";
 import { Options } from "../internal";
 import { Channel, Headers } from "./";
 
 export class Requester extends Channel {
-  private readonly _connectionPool: ConnectionPool;
+  private readonly _connectionPool: ConnectionPool<MultiAltEndpointsConnection>;
 
   //===========================================
   // APIs
@@ -14,7 +18,7 @@ export class Requester extends Channel {
   constructor(endpoints: string[], options: Required<Options>) {
     super(endpoints, options);
     this._connectionPool = new ConnectionPool(
-      super.pickEndpoint.bind(this),
+      new MultiAltEndpointsConnectionFactory(super.pickEndpoint.bind(this)),
       this.options,
       this,
     );
