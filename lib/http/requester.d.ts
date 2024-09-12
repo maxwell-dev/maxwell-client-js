@@ -8,11 +8,13 @@ export type Params = {
     [key: string]: any;
 } | URLSearchParams;
 export type Body = any;
+export type ResponseViewType = "json" | "text" | "arraybuffer" | "blob" | "bytes" | "formData" | "stream" | "response";
 export interface RequestOptions {
     method?: Method;
     headers?: Headers;
     params?: Params;
     body?: Body;
+    responseViewType?: ResponseViewType;
     timeout?: number;
     signal?: AbortSignal;
 }
@@ -29,5 +31,9 @@ export declare class Requester {
     put(path: string, options?: RequestOptions): AbortablePromise<any>;
     patch(path: string, options?: RequestOptions): AbortablePromise<any>;
     request(path: string, options?: RequestOptions): AbortablePromise<any>;
+    private _buildFetchOptions;
+    private static _isPlainObject;
     private _buildURL;
+    private static _determineResponseView;
+    private static _parseResponseViewType;
 }

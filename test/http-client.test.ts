@@ -10,9 +10,8 @@ describe("http client get", () => {
     const client = new http.Client(["localhost:8081"], {
       endpointPicker: "random",
     });
-    const res = await client.get("/$pick-frontends");
-    expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({
+    const response = await client.get("/$pick-frontends");
+    expect(response).toEqual({
       code: 0,
       endpoints: ["127.0.0.1:10000"],
     });
@@ -22,9 +21,14 @@ describe("http client get", () => {
     const client = new http.Client(["localhost:8081"], {
       endpointPicker: "delegated",
     });
-    const res = await client.get("/not-exist-path");
-    expect(res.status).toBe(500);
-    expect(res.statusText).toBe("Internal Server Error");
+    try {
+      await client.get("/not-exist-path");
+    } catch (e) {
+      expect(e).toBeInstanceOf(Error);
+      expect(e.message).toBe(
+        "FetchError: Failed to get http://127.0.0.1:10000/not-exist-path, reason: 500 (Internal Server Error)",
+      );
+    }
   });
 
   it("timeout by timeout", async () => {
@@ -33,11 +37,10 @@ describe("http client get", () => {
       sslEnabled: true,
     });
     try {
-      const res = await client.get(
+      await client.get(
         "/tauri-apps/tauri/archive/refs/tags/tauri-v2.0.0-rc.10.zip",
         { timeout: 10 },
       );
-      expect(res.status).toBe(200);
     } catch (e) {
       expect(e).toBeInstanceOf(TimeoutError);
       expect(e.message).toBe("The operation was aborted due to timeout");
@@ -53,14 +56,11 @@ describe("http client get", () => {
     });
     try {
       const controller = new AbortControllerPlus();
-      const res = await client.get(
+      await client.get(
         "/tauri-apps/tauri/archive/refs/tags/tauri-v2.0.0-rc.10.zip",
         { signal: controller.signal.timeout(10) },
       );
       mockFn1();
-      expect(res.status).toBe(200);
-      const data = await res.blob();
-      expect(data.size).toBeGreaterThan(0);
     } catch (e) {
       expect(e).toBeInstanceOf(TimeoutError);
       expect(e.message).toBe("The operation was aborted due to timeout");
@@ -80,14 +80,11 @@ describe("http client get", () => {
       setTimeout(() => {
         controller.abort();
       }, 10);
-      const res = await client.get(
+      await client.get(
         "/tauri-apps/tauri/archive/refs/tags/tauri-v2.0.0-rc.10.zip",
         { signal: controller.signal },
       );
       mockFn1();
-      expect(res.status).toBe(200);
-      const data = await res.blob();
-      expect(data.size).toBeGreaterThan(0);
     } catch (e) {
       expect(e).toBeInstanceOf(AbortError);
       expect(e.message).toBe("This operation was aborted");
@@ -109,11 +106,8 @@ describe("http client get", () => {
       setTimeout(() => {
         promise.abort();
       }, 10);
-      const res = await promise;
+      await promise;
       mockFn1();
-      expect(res.status).toBe(200);
-      const data = await res.blob();
-      expect(data.size).toBeGreaterThan(0);
     } catch (e) {
       expect(e).toBeInstanceOf(AbortError);
       expect(e.message).toBe("This operation was aborted");

@@ -1,8 +1,3 @@
-import {
-  AbortControllerPlus,
-  AbortError,
-  TimeoutError,
-} from "@xuchaoqian/abortable-promise";
 import * as ws from "../src/ws";
 
 describe("ws client get", () => {
@@ -10,8 +5,8 @@ describe("ws client get", () => {
     const client = new ws.Client(["localhost:8081"], {
       endpointPicker: "delegated",
     });
-    const res = await client.ws("/hello");
-    expect(res).toEqual("world");
+    const response = await client.ws("/hello");
+    expect(response).toEqual("world");
   });
 
   it("not exist path", async () => {
