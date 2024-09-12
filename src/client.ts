@@ -73,22 +73,15 @@ export class Client {
     return this._httpRequester.request(path, options);
   }
 
-  ws(
-    path: string,
-    payload?: unknown,
-    headers?: ws.Headers,
-    roundTimeout?: number,
-  ): AbortablePromise<any> {
-    return this._wsRequester.request(path, payload, headers, roundTimeout);
+  ws(path: string, options?: ws.RequestOptions): AbortablePromise<any> {
+    return this._wsRequester.request(path, options);
   }
 
   requestViaWs(
     path: string,
-    payload?: unknown,
-    headers?: ws.Headers,
-    roundTimeout?: number,
+    options?: ws.RequestOptions,
   ): AbortablePromise<any> {
-    return this._wsRequester.request(path, payload, headers, roundTimeout);
+    return this._wsRequester.request(path, options);
   }
 
   subscribe(

@@ -2,12 +2,12 @@ import { AbortablePromise } from "@xuchaoqian/abortable-promise";
 import { buildOptions, Options } from "../internal";
 import {
   SubscriberManager,
-  Headers,
   Offset,
   IConsumer,
   FunctionConsumer,
   ConsumerKey,
   Requester,
+  RequestOptions,
 } from "./";
 
 export class Client {
@@ -46,22 +46,12 @@ export class Client {
     this._subscriberManager.close();
   }
 
-  ws(
-    path: string,
-    payload?: unknown,
-    headers?: Headers,
-    roundTimeout?: number,
-  ): AbortablePromise<any> {
-    return this._requester.request(path, payload, headers, roundTimeout);
+  ws(path: string, options?: RequestOptions): AbortablePromise<any> {
+    return this._requester.request(path, options);
   }
 
-  request(
-    path: string,
-    payload?: unknown,
-    headers?: Headers,
-    roundTimeout?: number,
-  ): AbortablePromise<any> {
-    return this._requester.request(path, payload, headers, roundTimeout);
+  request(path: string, options?: RequestOptions): AbortablePromise<any> {
+    return this._requester.request(path, options);
   }
 
   subscribe(

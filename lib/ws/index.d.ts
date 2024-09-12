@@ -1,5 +1,4 @@
 export * from "./types";
-export * from "./headers";
 export * from "./queue";
 export * from "./channel";
 export * from "./requester";

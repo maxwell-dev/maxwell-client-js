@@ -1,6 +1,6 @@
 import { AbortablePromise } from "@xuchaoqian/abortable-promise";
 import { Options } from "../internal";
-import { Headers, Offset, IConsumer, FunctionConsumer, ConsumerKey } from "./";
+import { Offset, IConsumer, FunctionConsumer, ConsumerKey, RequestOptions } from "./";
 export declare class Client {
     private _endpoints;
     private _options;
@@ -11,8 +11,8 @@ export declare class Client {
     static create(endpoints: string[], options?: Options): Client;
     static get instance(): Client;
     close(): void;
-    ws(path: string, payload?: unknown, headers?: Headers, roundTimeout?: number): AbortablePromise<any>;
-    request(path: string, payload?: unknown, headers?: Headers, roundTimeout?: number): AbortablePromise<any>;
+    ws(path: string, options?: RequestOptions): AbortablePromise<any>;
+    request(path: string, options?: RequestOptions): AbortablePromise<any>;
     subscribe(topic: string, offset: Offset, consumer: IConsumer | FunctionConsumer): boolean;
     unsubscribe(topic: string, key: ConsumerKey): boolean;
     addConnectionListener(event: Event, listener: (...args: unknown[]) => void): void;

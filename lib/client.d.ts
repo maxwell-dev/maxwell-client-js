@@ -18,8 +18,8 @@ export declare class Client {
     put(path: string, options?: http.RequestOptions): AbortablePromise<any>;
     patch(path: string, options?: http.RequestOptions): AbortablePromise<any>;
     requestViaHttp(path: string, options?: http.RequestOptions): AbortablePromise<any>;
-    ws(path: string, payload?: unknown, headers?: ws.Headers, roundTimeout?: number): AbortablePromise<any>;
-    requestViaWs(path: string, payload?: unknown, headers?: ws.Headers, roundTimeout?: number): AbortablePromise<any>;
+    ws(path: string, options?: ws.RequestOptions): AbortablePromise<any>;
+    requestViaWs(path: string, options?: ws.RequestOptions): AbortablePromise<any>;
     subscribe(topic: string, offset: number, consumer: ws.IConsumer | ws.FunctionConsumer): boolean;
     unsubscribe(topic: string, key: ws.ConsumerKey): boolean;
     addConnectionListener(event: Event, listener: (...args: unknown[]) => void): void;
