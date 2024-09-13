@@ -63,16 +63,13 @@ export class Requester extends Channel {
   }
 
   request(path: string, options?: RequestOptions): AbortablePromise<any> {
-    if (typeof options === "undefined") {
-      options = {};
-    }
     const {
       headers,
       payload,
       waitOpenTimeout = this.options.waitOpenTimeout,
       roundTimeout = this.options.roundTimeout,
       signal,
-    } = options;
+    } = options ?? {};
     const connection = this._connectionPool.getConnection();
     if (connection.isOpen()) {
       return connection
