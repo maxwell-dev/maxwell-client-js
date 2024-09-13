@@ -4,7 +4,7 @@ import {
   AbortablePromise,
 } from "@xuchaoqian/abortable-promise";
 import { msg_types } from "maxwell-protocol";
-import { Condition, MultiAltEndpointsConnection } from "maxwell-utils";
+import { Condition, MultiAltEndpointsConnection, sleep } from "maxwell-utils";
 import { Options } from "../internal";
 import {
   Msg,
@@ -98,7 +98,7 @@ export class Subscriber {
           console.error(
             `Error occured: reason: ${e.stack}, will pull again...`,
           );
-          await this._sleep(1000);
+          await sleep(1000);
         }
       }
     }
@@ -110,7 +110,7 @@ export class Subscriber {
         `Queue(${this._topic}) is full(${this._queue.size()}), waiting for consuming...`,
       );
       this._queueCond.notify();
-      await this._sleep(1000);
+      await sleep(1000);
       return;
     }
 
@@ -127,14 +127,14 @@ export class Subscriber {
       console.info(
         `No msgs pulled: topic: ${this._topic}, offset: ${pullReq.offset}`,
       );
-      await this._sleep(1000);
+      await sleep(1000);
       return;
     }
     this._queue.put(pullRep.msgs as Msg[]);
     this._nextOffset = this._queue.lastOffset() + asOffset(1);
     this._queueCond.notify();
     if (this._options.pullInterval > 0) {
-      await this._sleep(this._options.pullInterval);
+      await sleep(this._options.pullInterval);
     }
   }
 
@@ -175,7 +175,7 @@ export class Subscriber {
       }
       this._queue.deleteTo(asOffset(msgs[msgs.length - 1].offset));
       if (this._options.consumeBatchInterval > 0) {
-        await this._sleep(this._options.consumeBatchInterval);
+        await sleep(this._options.consumeBatchInterval);
       }
     }
   }
@@ -186,9 +186,5 @@ export class Subscriber {
       offset: asProtobufOffset(this._nextOffset),
       limit: this._options.pullLimit,
     });
-  }
-
-  async _sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

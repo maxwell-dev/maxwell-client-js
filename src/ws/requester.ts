@@ -66,14 +66,17 @@ export class Requester extends Channel {
     if (typeof options === "undefined") {
       options = {};
     }
-    let { payload, headers, roundTimeout, signal } = options;
-    if (typeof roundTimeout === "undefined") {
-      roundTimeout = this.options.roundTimeout;
-    }
+    const {
+      headers,
+      payload,
+      waitOpenTimeout = this.options.waitOpenTimeout,
+      roundTimeout = this.options.roundTimeout,
+      signal,
+    } = options;
     const connection = this._connectionPool.getConnection();
     if (connection.isOpen()) {
       return connection
-        .request(this._createReqReq(path, payload, headers), {
+        .request(this._createReqReq(path, headers, payload), {
           timeout: roundTimeout,
           signal,
         })
@@ -81,10 +84,6 @@ export class Requester extends Channel {
           return JSON.parse(result.payload);
         });
     } else {
-      let { waitOpenTimeout } = options;
-      if (typeof waitOpenTimeout === "undefined") {
-        waitOpenTimeout = this.options.waitOpenTimeout;
-      }
       return connection
         .waitOpen({ timeout: waitOpenTimeout, signal })
         .then((connection) => {
@@ -106,13 +105,13 @@ export class Requester extends Channel {
 
   private _createReqReq(
     path: string,
-    payload?: unknown,
     headers?: Headers,
+    payload?: unknown,
   ): typeof msg_types.req_req_t.prototype {
     return new msg_types.req_req_t({
       path,
-      payload: JSON.stringify(payload ? payload : {}),
       header: headers ? headers : {},
+      payload: JSON.stringify(payload ? payload : {}),
     });
   }
 }

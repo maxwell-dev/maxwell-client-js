@@ -24,5 +24,4 @@ export declare class Subscriber {
     _repeatConsume(): Promise<void>;
     _consume(): Promise<void>;
     _createPullReq(): typeof msg_types.pull_req_t.prototype;
-    _sleep(ms: number): Promise<void>;
 }
