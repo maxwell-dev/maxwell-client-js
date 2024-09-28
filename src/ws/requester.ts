@@ -85,7 +85,7 @@ export class Requester extends Channel {
         .waitOpen({ timeout: waitOpenTimeout, signal })
         .then((connection) => {
           return connection
-            .request(this._createReqReq(path, payload, headers), {
+            .request(this._createReqReq(path, headers, payload), {
               timeout: roundTimeout,
               signal,
             })
